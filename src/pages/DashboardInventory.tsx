@@ -184,6 +184,21 @@ export default function DashboardInventory() {
   // Keep track of real-time progress messages streamed from SSE
   const [progressMessages, setProgressMessages] = useState<Record<string, string>>({});
 
+  // Keep track of actively submitting reports to prevent double clicking/submitting
+  const [submittingIds, setSubmittingIds] = useState<Record<string, boolean>>({});
+
+  // Reset all statuses to pending and clear localStorage on mount
+  useEffect(() => {
+    try {
+      localStorage.removeItem('powerbi_migration_statuses');
+      localStorage.removeItem('powerbi_migration_card_urls');
+    } catch (err) {
+      console.error('Failed to clear localStorage:', err);
+    }
+    setMigrationStatuses({});
+    setDomoCardUrls({});
+  }, []);
+
   const updateMigrationStatus = (reportId: string, status: Status) => {
     setMigrationStatuses(prev => {
       const updated = { ...prev, [reportId]: status };
@@ -208,6 +223,13 @@ export default function DashboardInventory() {
         return;
       }
 
+      if (submittingIds[reportId] || migrationStatuses[reportId] === 'in-progress') {
+        console.warn(`[MIGRATION] Migration already in progress or starting for report: ${reportId}`);
+        return;
+      }
+
+      setSubmittingIds(prev => ({ ...prev, [reportId]: true }));
+
       // Change state instantly to show 'In progress'
       updateMigrationStatus(reportId, 'in-progress');
       setProgressMessages(prev => ({ ...prev, [reportId]: 'Initializing...' }));
@@ -228,6 +250,11 @@ export default function DashboardInventory() {
             delete nextMsg[reportId];
             return nextMsg;
           });
+          setSubmittingIds(prev => {
+            const next = { ...prev };
+            delete next[reportId];
+            return next;
+          });
         },
         (errorMsg) => {
           console.error(`[MIGRATION FAILURE] ${errorMsg}`);
@@ -236,6 +263,11 @@ export default function DashboardInventory() {
             const nextMsg = { ...prev };
             delete nextMsg[reportId];
             return nextMsg;
+          });
+          setSubmittingIds(prev => {
+            const next = { ...prev };
+            delete next[reportId];
+            return next;
           });
         }
       );
@@ -253,6 +285,11 @@ export default function DashboardInventory() {
         console.error(`Failed to invoke startMigration:`, err);
         updateMigrationStatus(reportId, 'error');
         sseSubscription.close();
+        setSubmittingIds(prev => {
+          const next = { ...prev };
+          delete next[reportId];
+          return next;
+        });
       }
 
     } else if (action === 'pause') {
