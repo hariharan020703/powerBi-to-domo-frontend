@@ -32,9 +32,10 @@ export default function ClarifyPanel() {
         onClick={() => setOpen(o => !o)}
         className="fixed bottom-6 right-6 z-50 w-[46px] h-[46px] rounded-full flex items-center justify-center cursor-pointer"
         style={{
-          background: 'linear-gradient(135deg, #00f0ff, #7000ff)',
+          background: 'linear-gradient(135deg, #6c47ff, #0066cc)',
           animation: 'pulseRing 2.5s ease-out infinite',
           border: 'none',
+          boxShadow: '0 4px 18px rgba(108,71,255,0.40)',
         }}
         aria-label="Toggle Clarify panel"
       >
@@ -42,7 +43,7 @@ export default function ClarifyPanel() {
         {!open && (
           <span
             className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-white text-[9px] font-bold"
-            style={{ background: '#f87171', border: '2px solid #070913' }}
+            style={{ background: '#ef4444', border: '2px solid var(--bg)' }}
           >
             3
           </span>
@@ -54,11 +55,12 @@ export default function ClarifyPanel() {
         <div
           className="fixed bottom-20 right-6 z-50 w-[300px] flex flex-col"
           style={{
-            background: 'rgba(13,17,39,0.95)',
+            background: 'var(--card-bg)',
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(0,240,255,0.2)',
+            border: '1px solid var(--border)',
             borderRadius: 14,
+            boxShadow: '0 12px 40px rgba(15,23,60,0.15)',
             animation: 'slideUp 0.4s cubic-bezier(0.16,1,0.3,1) both',
             maxHeight: '480px',
           }}
@@ -66,28 +68,29 @@ export default function ClarifyPanel() {
           {/* Header */}
           <div
             className="flex items-center gap-2 p-3 flex-shrink-0"
-            style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+            style={{ borderBottom: '1px solid var(--border)' }}
           >
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #00f0ff, #7000ff)' }}
+              style={{ background: 'linear-gradient(135deg, #6c47ff, #0066cc)' }}
             >
               <Sparkles size={13} color="white" />
             </div>
-            <span className="font-semibold text-sm text-white flex-1">Clarify</span>
+            <span className="font-semibold text-sm flex-1" style={{ color: 'var(--text)' }}>Clarify</span>
             <span
               className="text-[10px] font-600 px-1.5 py-0.5 rounded-full"
               style={{
                 background: 'rgba(52,211,153,0.1)',
                 border: '1px solid rgba(52,211,153,0.2)',
-                color: '#34d399',
+                color: '#16a34a',
               }}
             >
               online
             </span>
             <button
               onClick={() => setOpen(false)}
-              className="ml-1 text-white/40 hover:text-white/80 transition-colors"
+              className="ml-1 transition-colors"
+              style={{ color: 'var(--muted)' }}
             >
               <X size={14} />
             </button>
@@ -102,14 +105,15 @@ export default function ClarifyPanel() {
                 style={
                   msg.role === 'ai'
                     ? {
-                        background: 'rgba(255,255,255,0.04)',
-                        color: '#c0bfe8',
+                        background: 'var(--surface)',
+                        color: 'var(--text)',
                         borderRadius: '8px 8px 8px 2px',
+                        border: '1px solid var(--border)',
                       }
                     : {
-                        background: 'rgba(0,240,255,0.08)',
-                        color: '#00f0ff',
-                        border: '1px solid rgba(0,240,255,0.15)',
+                        background: 'rgba(108,71,255,0.08)',
+                        color: '#6c47ff',
+                        border: '1px solid rgba(108,71,255,0.18)',
                         borderRadius: '8px 8px 2px 8px',
                         alignSelf: 'flex-end',
                       }
@@ -128,12 +132,12 @@ export default function ClarifyPanel() {
                 className="text-left text-xs px-2.5 py-1.5 rounded-lg transition-all duration-300"
                 style={{
                   background: 'transparent',
-                  border: '1px solid rgba(0,240,255,0.2)',
-                  color: '#00f0ff',
+                  border: '1px solid rgba(108,71,255,0.22)',
+                  color: '#6c47ff',
                   cursor: 'pointer',
                 }}
                 onMouseOver={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,240,255,0.08)';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(108,71,255,0.08)';
                 }}
                 onMouseOut={e => {
                   (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
@@ -147,7 +151,7 @@ export default function ClarifyPanel() {
           {/* Input */}
           <div
             className="p-2 flex-shrink-0"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+            style={{ borderTop: '1px solid var(--border)' }}
           >
             <div className="flex items-center gap-2">
               <input
@@ -163,7 +167,7 @@ export default function ClarifyPanel() {
                 onClick={() => setInputVal('')}
                 className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
                 style={{
-                  background: 'linear-gradient(135deg, #00f0ff, #7000ff)',
+                  background: 'linear-gradient(135deg, #6c47ff, #0066cc)',
                   border: 'none',
                   cursor: 'pointer',
                 }}

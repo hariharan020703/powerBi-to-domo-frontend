@@ -35,11 +35,11 @@ function StatItem({
     <div className="flex flex-col items-center px-8 py-6">
       <span
         className="text-4xl font-extrabold mb-1"
-        style={{ color: '#00f0ff' }}
+        style={{ color: 'var(--purple)' }}
       >
         {display}
       </span>
-      <span className="text-sm text-center" style={{ color: '#8fa0dd' }}>{label}</span>
+      <span className="text-sm text-center" style={{ color: 'var(--muted)' }}>{label}</span>
     </div>
   );
 }
@@ -129,9 +129,9 @@ export default function Landing() {
         className="fixed top-0 left-0 right-0 z-50 flex items-center px-6 md:px-10 transition-all duration-500"
         style={{
           height: scrolled ? 64 : 80,
-          background: scrolled ? 'rgba(7,9,19,0.92)' : 'transparent',
+          background: scrolled ? 'var(--topbar-bg)' : 'transparent',
           backdropFilter: scrolled ? 'blur(16px)' : 'none',
-          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
+          borderBottom: scrolled ? '1px solid var(--border)' : 'none',
           transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)',
         }}
       >
@@ -143,8 +143,8 @@ export default function Landing() {
           >
             <Zap size={14} color="white" />
           </div>
-          <span className="font-bold text-base tracking-tight text-white">
-            migration<span style={{ color: '#00f0ff' }}>IQ</span>
+          <span className="font-bold text-base tracking-tight" style={{ color: 'var(--text)' }}>
+            migration<span style={{ color: 'var(--purple)' }}>IQ</span>
           </span>
         </div>
 
@@ -155,9 +155,9 @@ export default function Landing() {
               key={l}
               href="#"
               className="text-sm font-medium transition-colors duration-300"
-              style={{ color: '#8fa0dd' }}
-              onMouseOver={e => ((e.currentTarget as HTMLElement).style.color = '#f1f3f9')}
-              onMouseOut={e => ((e.currentTarget as HTMLElement).style.color = '#8fa0dd')}
+              style={{ color: 'var(--muted)' }}
+              onMouseOver={e => ((e.currentTarget as HTMLElement).style.color = 'var(--text)')}
+              onMouseOut={e => ((e.currentTarget as HTMLElement).style.color = 'var(--muted)')}
             >
               {l}
             </a>
@@ -166,7 +166,7 @@ export default function Landing() {
 
         {/* Right */}
         <div className="hidden md:flex items-center gap-3 ml-auto">
-          <Link to="/app" className="text-sm font-medium" style={{ color: '#8fa0dd' }}>
+          <Link to="/app" className="text-sm font-medium" style={{ color: 'var(--muted)' }}>
             Sign in
           </Link>
           <Link
@@ -190,10 +190,10 @@ export default function Landing() {
       {mobileNav && (
         <div
           className="fixed inset-0 z-40 flex flex-col pt-20 px-6 gap-4 md:hidden"
-          style={{ background: 'rgba(7,9,19,0.97)', backdropFilter: 'blur(16px)' }}
+          style={{ background: 'var(--topbar-bg)', backdropFilter: 'blur(16px)', borderBottom: '1px solid var(--border)' }}
         >
           {['Products', 'How it Works', 'Metrics', 'Enterprise'].map(l => (
-            <a key={l} href="#" className="text-lg font-medium text-white py-2"
+            <a key={l} href="#" className="text-lg font-medium py-2" style={{ color: 'var(--text)' }}
               onClick={() => setMobileNav(false)}
             >{l}</a>
           ))}
@@ -253,7 +253,7 @@ export default function Landing() {
           </div>
 
           {/* Social proof */}
-          <p className="text-xs font-medium" style={{ color: 'rgba(143,160,221,0.7)' }}>
+          <p className="text-xs font-medium" style={{ color: 'var(--muted)', opacity: 0.75 }}>
             Trusted by 40+ data teams · Average migration time reduced by 73%
           </p>
         </section>
@@ -263,11 +263,12 @@ export default function Landing() {
           <div
             className="relative flex items-stretch gap-0"
             style={{
-              background: 'rgba(13,17,39,0.60)',
+              background: 'var(--card-bg)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: '1px solid var(--border)',
               borderRadius: 20,
               padding: '32px 24px',
+              boxShadow: '0 4px 24px rgba(15,23,60,0.07)',
             }}
           >
             {/* Left node — Source */}
@@ -456,9 +457,9 @@ export default function Landing() {
           ref={statsRef}
           className="relative"
           style={{
-            background: '#04060d',
-            borderTop: '1px solid rgba(255,255,255,0.04)',
-            borderBottom: '1px solid rgba(255,255,255,0.04)',
+            background: 'var(--surface)',
+            borderTop: '1px solid var(--border)',
+            borderBottom: '1px solid var(--border)',
           }}
         >
           <div className="max-w-4xl mx-auto">
@@ -468,7 +469,7 @@ export default function Landing() {
                   key={i}
                   className="flex flex-col items-center px-6 py-8"
                   style={{
-                    borderRight: i < 3 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                    borderRight: i < 3 ? '1px solid var(--border)' : 'none',
                   }}
                 >
                   <StatItem
@@ -519,17 +520,17 @@ export default function Landing() {
             <div className="card p-5">
               <table className="w-full text-xs">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
                     {['Dashboard Name', 'Source', 'Complexity', 'Status'].map(h => (
-                      <th key={h} className="text-left pb-3 font-semibold" style={{ color: '#8fa0dd' }}>{h}</th>
+                      <th key={h} className="text-left pb-3 font-semibold" style={{ color: 'var(--muted)' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {tableRows.map((row, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                      <td className="py-2.5 font-medium text-white">{row.name}</td>
-                      <td className="py-2.5" style={{ color: '#8fa0dd' }}>{row.source}</td>
+                    <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                      <td className="py-2.5 font-medium" style={{ color: 'var(--text)' }}>{row.name}</td>
+                      <td className="py-2.5" style={{ color: 'var(--muted)' }}>{row.source}</td>
                       <td className="py-2.5">
                         <span
                           className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
@@ -563,7 +564,7 @@ export default function Landing() {
         </section>
 
         {/* Footer */}
-        <footer style={{ background: '#04060d', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+        <footer style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)' }}>
           <div className="max-w-6xl mx-auto px-6 py-16">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
               <div>
@@ -574,8 +575,8 @@ export default function Landing() {
                   >
                     <Zap size={12} color="white" />
                   </div>
-                  <span className="font-bold text-sm text-white">
-                    migration<span style={{ color: '#00f0ff' }}>IQ</span>
+                  <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>
+                    migration<span style={{ color: 'var(--purple)' }}>IQ</span>
                   </span>
                 </div>
                 <p className="text-xs leading-relaxed" style={{ color: '#8fa0dd' }}>
@@ -606,7 +607,7 @@ export default function Landing() {
             </div>
             <div
               className="flex flex-col md:flex-row items-center justify-between gap-4 pt-6"
-              style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
+              style={{ borderTop: '1px solid var(--border)' }}
             >
               <p className="text-xs" style={{ color: 'rgba(143,160,221,0.4)' }}>
                 © 2026 migrationIQ. All rights reserved.

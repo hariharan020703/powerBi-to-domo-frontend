@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, FileText, ArrowRight, ChevronUp, RefreshCw } from 'lucide-react';
+import { Plus, FileText, ArrowRight, ChevronUp, RefreshCw, Folder, LayoutDashboard, ArrowRightLeft, Clock } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ConnectModal from '../components/ConnectModal';
 import { apiClient } from '../config/api';
@@ -162,25 +162,21 @@ export default function Projects() {
         <div className="p-6 max-w-6xl">
           {/* Stats row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
-            <StatCard label="Total projects" value={totalProjects.toString()} />
+            <StatCard icon={<Folder size={14} />} label="Total projects" value={totalProjects.toString()} />
             <StatCard
+              icon={<LayoutDashboard size={14} />}
               label="Dashboards"
               value={totalReportsCount.toString()}
-              extra={
-                <span className="flex items-center gap-0.5 text-[10px] font-semibold" style={{ color: '#34d399' }}>
-                  <ChevronUp size={11} /> Sync verified
-                </span>
-              }
             />
             <StatCard
+              icon={<ArrowRightLeft size={14} />}
               label="Migrated"
               value={totalMigratedCount.toString()}
-              extra={<span className="text-[10px]" style={{ color: '#8fa0dd' }}>{completionPercentage}% complete</span>}
             />
             <StatCard
+              icon={<Clock size={14} />}
               label="Pending review"
               value={pendingReviewCount.toString()}
-              extra={<span className="text-[10px]" style={{ color: '#fbbf24' }}>UAT in progress</span>}
             />
           </div>
 
@@ -254,8 +250,8 @@ export default function Projects() {
                         {p.icon}
                       </div>
                       <div>
-                        <p className="font-bold text-sm text-white">{p.name}</p>
-                        <p className="text-[11px]" style={{ color: '#8fa0dd' }}>{p.subtitle}</p>
+                        <p className="font-bold text-sm" style={{ color: 'var(--text)' }}>{p.name}</p>
+                        <p className="text-[11px]" style={{ color: 'var(--muted)' }}>{p.subtitle}</p>
                       </div>
                     </div>
                     <span
@@ -307,7 +303,7 @@ export default function Projects() {
                   {/* Footer */}
                   <div
                     className="flex items-center justify-between pt-3"
-                    style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}
+                    style={{ borderTop: '1px solid var(--border)' }}
                   >
                     <span className="text-[10px]" style={{ color: '#8fa0dd' }}>{p.date}</span>
                     <Link
@@ -326,29 +322,29 @@ export default function Projects() {
                 onClick={() => setModalOpen(true)}
                 className="flex flex-col items-center justify-center p-8 rounded-2xl transition-all duration-300 group cursor-pointer"
                 style={{
-                  border: '1.5px dashed rgba(255,255,255,0.1)',
+                  border: '1.5px dashed var(--border)',
                   background: 'transparent',
                   minHeight: 200,
                 }}
                 onMouseOver={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,240,255,0.3)';
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(0,240,255,0.03)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(108,71,255,0.30)';
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(108,71,255,0.03)';
                 }}
                 onMouseOut={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.1)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
                   (e.currentTarget as HTMLElement).style.background = 'transparent';
                 }}
               >
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center mb-3 transition-all duration-300"
                   style={{
-                    border: '1.5px dashed rgba(255,255,255,0.15)',
+                    border: '1.5px dashed var(--border)',
                   }}
                 >
-                  <Plus size={18} style={{ color: 'rgba(143,160,221,0.6)' }} />
+                  <Plus size={18} style={{ color: 'var(--muted)' }} />
                 </div>
-                <p className="font-semibold text-sm mb-1 text-white">New project</p>
-                <p className="text-xs text-center" style={{ color: '#8fa0dd' }}>
+                <p className="font-semibold text-sm mb-1" style={{ color: 'var(--text)' }}>New project</p>
+                <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>
                   Connect Tableau, Power BI, Looker or Quicksight
                 </p>
               </button>
@@ -362,12 +358,37 @@ export default function Projects() {
   );
 }
 
-function StatCard({ label, value, extra }: { label: string; value: string; extra?: React.ReactNode }) {
+function StatCard({ icon, label, value, extra }: { icon?: React.ReactNode; label: string; value: string; extra?: React.ReactNode }) {
   return (
-    <div className="card p-4 flex flex-col gap-1">
-      <p className="text-xs" style={{ color: '#8fa0dd' }}>{label}</p>
-      <p className="text-2xl font-extrabold text-white">{value}</p>
-      {extra && <div>{extra}</div>}
+    <div 
+      className="relative overflow-hidden transition-all duration-300 cursor-default"
+      style={{
+        background: 'var(--card-bg)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid var(--border)',
+        borderRadius: 10,
+        padding: '14px 12px',
+        boxShadow: '0 1px 6px rgba(15,23,60,0.05)',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 6px 16px rgba(111,43,139,0.1)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'none';
+        e.currentTarget.style.boxShadow = '0 1px 6px rgba(15,23,60,0.05)';
+      }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <p style={{ fontSize: 9, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
+        {icon && (
+          <div className="flex items-center justify-center rounded-md w-6 h-6" style={{ background: 'rgba(111,43,139,0.08)', color: 'var(--purple)' }}>
+            {icon}
+          </div>
+        )}
+      </div>
+      <p style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{value}</p>
+      {extra && <div style={{ marginTop: 3 }}>{extra}</div>}
     </div>
   );
 }

@@ -51,7 +51,7 @@ export default function AppShell({ children, topbarLeft, topbarRight, dimSidebar
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 md:hidden"
-          style={{ background: 'rgba(0,0,0,0.5)' }}
+          style={{ background: 'rgba(0,0,0,0.3)' }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -66,31 +66,32 @@ export default function AppShell({ children, topbarLeft, topbarRight, dimSidebar
         `}
         style={{
           width: 200,
-          background: '#04060d',
-          borderRight: '1px solid rgba(255,255,255,0.04)',
+          background: 'var(--sidebar-bg)',
+          borderRight: '1px solid var(--border)',
           opacity: dimSidebar ? 0.35 : 1,
           transition: 'opacity 0.4s cubic-bezier(0.16,1,0.3,1)',
+          boxShadow: '2px 0 16px rgba(15,23,60,0.06)',
         }}
       >
         {/* Logo */}
         <div
           className="flex items-center gap-2.5 px-4 py-4 flex-shrink-0"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+          style={{ borderBottom: '1px solid var(--border)' }}
         >
           <div
             className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #00f0ff, #7000ff)' }}
+            style={{ background: 'linear-gradient(135deg, #6c47ff, #0066cc)' }}
           >
             <ArrowRightLeft size={14} color="white" />
           </div>
-          <span className="font-bold text-sm tracking-tight text-white">
-            migration<span style={{ color: '#00f0ff' }}>IQ</span>
+          <span className="font-bold text-sm tracking-tight" style={{ color: 'var(--text)' }}>
+            migration<span style={{ color: 'var(--purple)' }}>IQ</span>
           </span>
           <div
             className="w-[5px] h-[5px] rounded-full ml-auto"
             style={{
-              background: '#7000ff',
-              boxShadow: '0 0 6px #7000ff',
+              background: 'var(--purple)',
+              boxShadow: '0 0 6px var(--purple)',
             }}
           />
         </div>
@@ -100,7 +101,7 @@ export default function AppShell({ children, topbarLeft, topbarRight, dimSidebar
           <div className="mb-4">
             <p
               className="text-[9px] font-semibold tracking-widest px-2 mb-2"
-              style={{ color: 'rgba(143,160,221,0.4)' }}
+              style={{ color: 'var(--muted)', opacity: 0.6 }}
             >
               WORKSPACE
             </p>
@@ -109,32 +110,43 @@ export default function AppShell({ children, topbarLeft, topbarRight, dimSidebar
                 key={item.to}
                 to={item.to}
                 end={item.to === '/app'}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 px-2.5 py-2 rounded-lg mb-0.5 text-xs font-medium transition-all duration-300 ${
-                    isActive
-                      ? 'text-cyan-400'
-                      : 'text-muted hover:text-white hover:bg-white/5'
-                  }`
-                }
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg mb-0.5 text-xs font-medium transition-all duration-200"
                 style={({ isActive }) =>
                   isActive
                     ? {
-                        background: 'rgba(0,240,255,0.08)',
-                        color: '#00f0ff',
-                        border: '1px solid rgba(0,240,255,0.12)',
-                      }
-                    : {}
+                      background: 'rgba(108,71,255,0.10)',
+                      color: 'var(--purple)',
+                      border: '1px solid rgba(108,71,255,0.18)',
+                    }
+                    : {
+                      color: 'var(--muted)',
+                      border: '1px solid transparent',
+                    }
                 }
+                onMouseOver={e => {
+                  const el = e.currentTarget as HTMLElement;
+                  if (!el.dataset.active) {
+                    el.style.background = 'rgba(108,71,255,0.05)';
+                    el.style.color = 'var(--text)';
+                  }
+                }}
+                onMouseOut={e => {
+                  const el = e.currentTarget as HTMLElement;
+                  if (!el.dataset.active) {
+                    el.style.background = '';
+                    el.style.color = 'var(--muted)';
+                  }
+                }}
               >
-                <span style={{ opacity: 0.7 }}>{item.icon}</span>
+                <span style={{ opacity: 0.8 }}>{item.icon}</span>
                 <span className="flex-1">{item.label}</span>
                 {item.badge !== undefined && (
                   <span
                     className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full"
                     style={{
-                      background: 'rgba(0,240,255,0.1)',
-                      border: '1px solid rgba(0,240,255,0.2)',
-                      color: '#00f0ff',
+                      background: 'rgba(108,71,255,0.10)',
+                      border: '1px solid rgba(108,71,255,0.20)',
+                      color: 'var(--purple)',
                     }}
                   >
                     {item.badge}
@@ -147,7 +159,7 @@ export default function AppShell({ children, topbarLeft, topbarRight, dimSidebar
           <div>
             <p
               className="text-[9px] font-semibold tracking-widest px-2 mb-2"
-              style={{ color: 'rgba(143,160,221,0.4)' }}
+              style={{ color: 'var(--muted)', opacity: 0.6 }}
             >
               CONFIG
             </p>
@@ -155,24 +167,35 @@ export default function AppShell({ children, topbarLeft, topbarRight, dimSidebar
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 px-2.5 py-2 rounded-lg mb-0.5 text-xs font-medium transition-all duration-300 ${
-                    isActive
-                      ? 'text-cyan-400'
-                      : 'text-muted hover:text-white hover:bg-white/5'
-                  }`
-                }
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg mb-0.5 text-xs font-medium transition-all duration-200"
                 style={({ isActive }) =>
                   isActive
                     ? {
-                        background: 'rgba(0,240,255,0.08)',
-                        color: '#00f0ff',
-                        border: '1px solid rgba(0,240,255,0.12)',
-                      }
-                    : {}
+                      background: 'rgba(108,71,255,0.10)',
+                      color: 'var(--purple)',
+                      border: '1px solid rgba(108,71,255,0.18)',
+                    }
+                    : {
+                      color: 'var(--muted)',
+                      border: '1px solid transparent',
+                    }
                 }
+                onMouseOver={e => {
+                  const el = e.currentTarget as HTMLElement;
+                  if (!el.dataset.active) {
+                    el.style.background = 'rgba(108,71,255,0.05)';
+                    el.style.color = 'var(--text)';
+                  }
+                }}
+                onMouseOut={e => {
+                  const el = e.currentTarget as HTMLElement;
+                  if (!el.dataset.active) {
+                    el.style.background = '';
+                    el.style.color = 'var(--muted)';
+                  }
+                }}
               >
-                <span style={{ opacity: 0.7 }}>{item.icon}</span>
+                <span style={{ opacity: 0.8 }}>{item.icon}</span>
                 <span className="flex-1">{item.label}</span>
               </NavLink>
             ))}
@@ -182,17 +205,17 @@ export default function AppShell({ children, topbarLeft, topbarRight, dimSidebar
         {/* User */}
         <div
           className="px-3 py-3 flex-shrink-0 flex items-center gap-2.5"
-          style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
+          style={{ borderTop: '1px solid var(--border)' }}
         >
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #00f0ff, #7000ff)' }}
+            style={{ background: 'linear-gradient(135deg, #6c47ff, #0066cc)' }}
           >
             GA
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-semibold text-white truncate">Gowtham AR</p>
-            <p className="text-[9px] truncate" style={{ color: '#8fa0dd' }}>Solution Architect</p>
+            <p className="text-[11px] font-semibold truncate" style={{ color: 'var(--text)' }}>Gowtham AR</p>
+            <p className="text-[9px] truncate" style={{ color: 'var(--muted)' }}>Solution Architect</p>
           </div>
         </div>
       </aside>
@@ -204,15 +227,17 @@ export default function AppShell({ children, topbarLeft, topbarRight, dimSidebar
           className="flex items-center gap-3 px-5 flex-shrink-0"
           style={{
             height: 52,
-            background: 'rgba(7,9,19,0.8)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            background: 'var(--topbar-bg)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderBottom: '1px solid var(--border)',
+            boxShadow: '0 1px 8px rgba(15,23,60,0.06)',
           }}
         >
           {/* Mobile hamburger */}
           <button
-            className="md:hidden text-white/60 hover:text-white mr-1"
+            className="md:hidden mr-1 transition-colors"
+            style={{ color: 'var(--muted)' }}
             onClick={() => setSidebarOpen(o => !o)}
           >
             {sidebarOpen ? <X size={18} /> : <Menu size={18} />}

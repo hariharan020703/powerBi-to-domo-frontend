@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Plus, BarChart, RefreshCw, Zap, AlertTriangle, Unlink } from 'lucide-react';
+import { ChevronRight, Plus, BarChart, RefreshCw, Zap, AlertTriangle, Unlink, Database, Link2, AlertCircle, Link2Off } from 'lucide-react';
 import AppShell from '../components/AppShell';
 import ConnectModal from '../components/ConnectModal';
 import { apiClient } from '../config/api';
@@ -82,14 +82,14 @@ function ConnectionCard({ conn }: { conn: Connection; }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: 'rgba(13,17,39,0.60)',
+        background: 'var(--card-bg)',
         backdropFilter: 'blur(12px)',
-        border: `1px solid ${conn.cardBorder ?? 'rgba(255,255,255,0.06)'}`,
+        border: `1px solid ${conn.cardBorder ?? 'var(--border)'}`,
         borderRadius: 14,
         overflow: 'hidden',
+        boxShadow: '0 1px 8px rgba(15,23,60,0.06)',
         transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)',
         transform: hovered ? 'translateY(-2px)' : 'none',
-        boxShadow: hovered ? '0 8px 32px rgba(0,240,255,0.05)' : 'none',
       }}
     >
       {/* Accent line */}
@@ -113,12 +113,12 @@ function ConnectionCard({ conn }: { conn: Connection; }) {
               {conn.icon}
             </div>
             <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>{conn.name}</p>
-              <p style={{ fontSize: 9, color: '#8fa0dd', marginTop: 1 }}>{conn.url}</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>{conn.name}</p>
+              <p style={{ fontSize: 9, color: 'var(--muted)', marginTop: 1 }}>{conn.url}</p>
               <span style={{
-                fontSize: 9, color: '#8fa0dd',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                fontSize: 9, color: 'var(--muted)',
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
                 borderRadius: 4, padding: '1px 5px',
                 marginTop: 3, display: 'inline-block',
               }}>
@@ -133,13 +133,13 @@ function ConnectionCard({ conn }: { conn: Connection; }) {
         <div className="grid grid-cols-3 gap-2 mb-3">
           {conn.stats.map(s => (
             <div key={s.label} style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.05)',
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
               borderRadius: 8, padding: '6px 8px',
               textAlign: 'center',
             }}>
-              <p style={{ fontSize: 14, fontWeight: 800, color: 'white' }}>{s.value}</p>
-              <p style={{ fontSize: 8, color: '#8fa0dd', marginTop: 1 }}>{s.label}</p>
+              <p style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)' }}>{s.value}</p>
+              <p style={{ fontSize: 8, color: 'var(--muted)', marginTop: 1 }}>{s.label}</p>
             </div>
           ))}
         </div>
@@ -165,7 +165,7 @@ function ConnectionCard({ conn }: { conn: Connection; }) {
         )}
 
         {/* Sync info */}
-        <p style={{ fontSize: 9, color: '#8fa0dd', marginBottom: 10 }}>{conn.syncInfo}</p>
+        <p style={{ fontSize: 9, color: 'var(--muted)', marginBottom: 10 }}>{conn.syncInfo}</p>
 
         {/* Actions */}
         <div className="flex items-center gap-2">
@@ -322,10 +322,10 @@ export default function Connections() {
         <div className="p-5 flex flex-col gap-5">
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <StatCard label="TOTAL" value={totalConnections.toString()} valueColor="#f1f3f9" sub="Workspaces loaded" />
-            <StatCard label="CONNECTED" value={connectedConnections.toString()} valueColor="#34d399" sub={connectedConnections > 0 ? "All systems go" : "No active links"} subColor="#34d399" />
-            <StatCard label="WARNING" value={warningConnections.toString()} valueColor="#fbbf24" sub={warningConnections > 0 ? "Token expiring" : "No warnings"} subColor="#fbbf24" />
-            <StatCard label="DISCONNECTED" value={disconnectedConnections.toString()} valueColor="#f87171" sub={disconnectedConnections > 0 ? "Auth required" : "No disconnects"} subColor="#f87171" />
+            <StatCard icon={<Database size={12} />} label="TOTAL CONNECTIONS" value={totalConnections.toString()} valueColor="rgba(190, 136, 255, 1)" sub="Workspaces loaded" />
+            <StatCard icon={<Link2 size={12} />} label="CONNECTED" value={connectedConnections.toString()} valueColor="#34d399" sub={connectedConnections > 0 ? "All systems go" : "No active links"} subColor="#34d399" />
+            <StatCard icon={<AlertCircle size={12} />} label="WARNING" value={warningConnections.toString()} valueColor="#fbbf24" sub={warningConnections > 0 ? "Token expiring" : "No warnings"} subColor="#fbbf24" />
+            <StatCard icon={<Link2Off size={12} />} label="DISCONNECTED" value={disconnectedConnections.toString()} valueColor="#f87171" sub={disconnectedConnections > 0 ? "Auth required" : "No disconnects"} subColor="#f87171" />
           </div>
 
           {/* Section label */}
@@ -363,8 +363,8 @@ export default function Connections() {
               onMouseLeave={() => setNewHovered(false)}
               className="flex flex-col items-center justify-center gap-3 rounded-2xl transition-all duration-300"
               style={{
-                border: `1.5px dashed ${newHovered ? 'rgba(0,240,255,0.3)' : 'rgba(255,255,255,0.1)'}`,
-                background: newHovered ? 'rgba(0,240,255,0.03)' : 'transparent',
+                border: `1.5px dashed ${newHovered ? 'rgba(108,71,255,0.35)' : 'var(--border)'}`,
+                background: newHovered ? 'rgba(108,71,255,0.04)' : 'transparent',
                 minHeight: 180,
                 cursor: 'pointer',
                 padding: 24,
@@ -372,14 +372,14 @@ export default function Connections() {
             >
               <div style={{
                 width: 36, height: 36, borderRadius: 10,
-                border: '1.5px dashed rgba(255,255,255,0.15)',
+                border: '1.5px dashed var(--border)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <Plus size={16} style={{ color: 'rgba(143,160,221,0.6)' }} />
+                <Plus size={16} style={{ color: 'var(--muted)' }} />
               </div>
               <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: 12, fontWeight: 600, color: 'white', marginBottom: 4 }}>Add new connection</p>
-                <p style={{ fontSize: 9, color: '#8fa0dd' }}>Tableau · Power BI · Looker · Quicksight · Domo</p>
+                <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>Add new connection</p>
+                <p style={{ fontSize: 9, color: 'var(--muted)' }}>Tableau · Power BI · Looker · Quicksight · Domo</p>
               </div>
             </button>
           </div>
@@ -391,20 +391,39 @@ export default function Connections() {
   );
 }
 
-function StatCard({ label, value, valueColor, sub, subColor }: {
-  label: string; value: string; valueColor?: string; sub?: string; subColor?: string;
+function StatCard({ icon, label, value, valueColor, sub, subColor }: {
+  icon?: React.ReactNode; label: string; value: string; valueColor?: string; sub?: string; subColor?: string;
 }) {
   return (
-    <div style={{
-      background: 'rgba(13,17,39,0.60)',
-      backdropFilter: 'blur(12px)',
-      border: '1px solid rgba(255,255,255,0.06)',
-      borderRadius: 10,
-      padding: '10px 12px',
-    }}>
-      <p style={{ fontSize: 9, fontWeight: 600, color: '#8fa0dd', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{label}</p>
-      <p style={{ fontSize: 18, fontWeight: 800, color: valueColor || '#f1f3f9', lineHeight: 1 }}>{value}</p>
-      {sub && <p style={{ fontSize: 9, color: subColor || '#8fa0dd', marginTop: 3 }}>{sub}</p>}
+    <div 
+      className="relative overflow-hidden transition-all duration-300 cursor-default"
+      style={{
+        background: 'var(--card-bg)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid var(--border)',
+        borderRadius: 10,
+        padding: '10px 12px',
+        boxShadow: '0 1px 6px rgba(15,23,60,0.05)',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 6px 16px rgba(111,43,139,0.1)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'none';
+        e.currentTarget.style.boxShadow = '0 1px 6px rgba(15,23,60,0.05)';
+      }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <p style={{ fontSize: 9, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
+        {icon && (
+          <div className="flex items-center justify-center rounded-md w-6 h-6" style={{ background: 'rgba(111,43,139,0.08)', color: 'var(--purple)' }}>
+            {icon}
+          </div>
+        )}
+      </div>
+      <p style={{ fontSize: 18, fontWeight: 800, color: valueColor || 'var(--text)', lineHeight: 1 }}>{value}</p>
+      {sub && <p style={{ fontSize: 9, color: subColor || 'var(--muted)', marginTop: 3 }}>{sub}</p>}
     </div>
   );
 }

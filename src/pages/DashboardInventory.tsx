@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { ChevronRight, Search, RefreshCw } from 'lucide-react';
 import AppShell from '../components/AppShell';
@@ -436,11 +437,11 @@ export default function DashboardInventory() {
 
   const Breadcrumb = (
     <div className="flex items-center gap-1" style={{ fontSize: 11 }}>
-      <span style={{ color: '#8fa0dd' }}>Projects</span>
-      <ChevronRight size={11} style={{ color: '#8fa0dd' }} />
-      <span style={{ color: '#8fa0dd' }}>{workspaceName}</span>
-      <ChevronRight size={11} style={{ color: '#8fa0dd' }} />
-      <span style={{ color: 'white', fontWeight: 600 }}>Reports</span>
+      <span style={{ color: 'var(--muted)' }}>Projects</span>
+      <ChevronRight size={11} style={{ color: 'var(--muted)' }} />
+      <span style={{ color: 'var(--muted)' }}>{workspaceName}</span>
+      <ChevronRight size={11} style={{ color: 'var(--muted)' }} />
+      <span style={{ color: 'var(--text)', fontWeight: 600 }}>Reports</span>
     </div>
   );
 
@@ -521,9 +522,10 @@ export default function DashboardInventory() {
         <div
           className="rounded-xl overflow-hidden"
           style={{
-            background: 'rgba(13,17,39,0.60)',
+            background: 'var(--card-bg)',
             backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.06)',
+            border: '1px solid var(--border)',
+            boxShadow: '0 1px 8px rgba(15,23,60,0.05)',
           }}
         >
           {/* Header */}
@@ -531,14 +533,14 @@ export default function DashboardInventory() {
             className="grid text-left"
             style={{
               gridTemplateColumns: '2fr 1fr 80px 90px 110px 90px 100px',
-              background: 'rgba(255,255,255,0.03)',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              background: 'var(--surface)',
+              borderBottom: '1px solid var(--border)',
               padding: '8px 14px',
               gap: 8,
             }}
           >
             {['Report', 'Source', 'Complexity', 'Status', 'Calc fields', 'Data source', 'Action'].map(h => (
-              <span key={h} style={{ fontSize: 9, fontWeight: 600, color: '#8fa0dd', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span key={h} style={{ fontSize: 9, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {h}
               </span>
             ))}
@@ -611,25 +613,32 @@ function TableRow({
   progressMessage?: string;
   cardUrl?: string;
 }) {
+  const navigate = useNavigate();
+
   return (
     <div
-      className="inventory-row grid items-center"
+      className="inventory-row grid items-center cursor-pointer relative"
+      onClick={(e) => {
+        // Prevent navigation if clicking on an action button inside
+        if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) return;
+        navigate(`/app/report/${reportId}`, { state: { report: d } });
+      }}
       style={{
         gridTemplateColumns: '2fr 1fr 80px 90px 110px 90px 100px',
         padding: '10px 14px',
-        borderBottom: '1px solid rgba(255,255,255,0.03)',
+        borderBottom: '1px solid var(--border)',
         gap: 8,
         transition: 'background 0.2s',
       }}
     >
       {/* Name */}
       <div>
-        <p style={{ fontSize: 11, fontWeight: 600, color: 'white' }}>{d.name}</p>
-        <p style={{ fontSize: 9, color: '#8fa0dd', marginTop: 1 }}>{d.workbook}</p>
+        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)' }}>{d.name}</p>
+        <p style={{ fontSize: 9, color: 'var(--muted)', marginTop: 1 }}>{d.workbook}</p>
       </div>
 
       {/* Source */}
-      <span style={{ fontSize: 10, color: '#8fa0dd' }}>{d.source}</span>
+      <span style={{ fontSize: 10, color: 'var(--muted)' }}>{d.source}</span>
 
       {/* Complexity */}
       <ComplexityBadge c={d.complexity} />
@@ -652,11 +661,11 @@ function TableRow({
             }}
           />
         </div>
-        <span style={{ fontSize: 9, color: '#8fa0dd', fontWeight: 600, flexShrink: 0 }}>{d.fields}</span>
+        <span style={{ fontSize: 9, color: 'var(--muted)', fontWeight: 600, flexShrink: 0 }}>{d.fields}</span>
       </div>
 
       {/* Data source */}
-      <span style={{ fontSize: 9, color: '#8fa0dd' }}>{d.dataSource}</span>
+      <span style={{ fontSize: 9, color: 'var(--muted)' }}>{d.dataSource}</span>
 
       {/* Action */}
       <ActionButtons status={d.status} onAction={(action) => onAction(reportId, action)} cardUrl={cardUrl} />
@@ -668,18 +677,34 @@ function StatCard({ icon, label, value, valueColor, sub, subColor }: {
   icon: string; label: string; value: string; valueColor?: string; sub: string; subColor: string;
 }) {
   return (
-    <div style={{
-      background: 'rgba(13,17,39,0.60)',
-      backdropFilter: 'blur(12px)',
-      border: '1px solid rgba(255,255,255,0.06)',
-      borderRadius: 10,
-      padding: '10px 12px',
-    }}>
-      <div className="flex items-center gap-1 mb-1">
-        <span style={{ fontSize: 9 }}>{icon}</span>
-        <span style={{ fontSize: 9, fontWeight: 600, color: '#8fa0dd', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+    <div 
+      className="relative overflow-hidden transition-all duration-300 cursor-default"
+      style={{
+        background: 'var(--card-bg)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid var(--border)',
+        borderRadius: 10,
+        padding: '10px 12px',
+        boxShadow: '0 1px 6px rgba(15,23,60,0.05)',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 6px 16px rgba(111,43,139,0.1)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'none';
+        e.currentTarget.style.boxShadow = '0 1px 6px rgba(15,23,60,0.05)';
+      }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <p style={{ fontSize: 9, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
+        {icon && (
+          <div className="flex items-center justify-center rounded-md w-6 h-6" style={{ background: 'rgba(111,43,139,0.08)', color: 'var(--purple)' }}>
+            <span style={{ fontSize: 10 }}>{icon}</span>
+          </div>
+        )}
       </div>
-      <p style={{ fontSize: 18, fontWeight: 800, color: valueColor || '#f1f3f9', lineHeight: 1 }}>{value}</p>
+      <p style={{ fontSize: 18, fontWeight: 800, color: valueColor || 'var(--text)', lineHeight: 1 }}>{value}</p>
       <p style={{ fontSize: 9, color: subColor, marginTop: 3 }}>{sub}</p>
     </div>
   );

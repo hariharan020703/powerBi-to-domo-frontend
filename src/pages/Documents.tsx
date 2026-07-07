@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   ChevronRight, ChevronDown, Download, RefreshCw, Share2,
   FileText, Table, Code, Database, AlertTriangle, BarChart2,
-  Package,
+  Package, FileCheck, CheckCircle2, AlertCircle, Trash2
 } from 'lucide-react';
 import AppShell from '../components/AppShell';
 
@@ -35,66 +35,66 @@ const docs: DocCard[] = [
     statA: '214 fields',
     statB: '2.4 MB',
     freshLabel: 'Updated 2h ago',
-    freshColor: '#34d399',
+    freshColor: '#16a34a',
     accentGradient: 'linear-gradient(90deg, #f87171, #fb923c)',
   },
   {
     id: 'migration-register',
     name: 'Migration Register',
     type: 'Excel',
-    typeColor: '#34d399',
-    icon: <Table size={16} style={{ color: '#34d399' }} />,
-    iconBg: 'rgba(52,211,153,0.1)',
+    typeColor: '#16a34a',
+    icon: <Table size={16} style={{ color: '#16a34a' }} />,
+    iconBg: 'rgba(22,163,74,0.1)',
     desc: 'Full inventory of all 48 dashboards — complexity, status, date, data source, Beast Mode count.',
     statA: '48 dashboards',
     statB: '380 KB',
     freshLabel: 'Updated 2h ago',
-    freshColor: '#34d399',
-    accentGradient: 'linear-gradient(90deg, #34d399, #6ee7b7)',
+    freshColor: '#16a34a',
+    accentGradient: 'linear-gradient(90deg, #16a34a, #4ade80)',
   },
   {
     id: 'beast-mode-lib',
     name: 'Beast Mode Library',
     type: 'Excel',
-    typeColor: '#34d399',
-    icon: <Code size={16} style={{ color: '#34d399' }} />,
-    iconBg: 'rgba(52,211,153,0.1)',
+    typeColor: '#16a34a',
+    icon: <Code size={16} style={{ color: '#16a34a' }} />,
+    iconBg: 'rgba(22,163,74,0.1)',
     desc: 'All Beast Mode formulas written during migration with source formula and plain-English description.',
     statA: '214 formulas',
     statB: '1.1 MB',
     freshLabel: 'Updated 2h ago',
-    freshColor: '#34d399',
-    accentGradient: 'linear-gradient(90deg, #34d399, #6ee7b7)',
+    freshColor: '#16a34a',
+    accentGradient: 'linear-gradient(90deg, #16a34a, #4ade80)',
   },
   {
     id: 'datasource-mapping',
     name: 'Data Source Mapping',
     type: 'CSV',
-    typeColor: '#60a5fa',
-    icon: <Database size={16} style={{ color: '#60a5fa' }} />,
-    iconBg: 'rgba(96,165,250,0.1)',
+    typeColor: '#2563eb',
+    icon: <Database size={16} style={{ color: '#2563eb' }} />,
+    iconBg: 'rgba(37,99,235,0.1)',
     desc: 'Source connections mapped to Domo connectors/DataFlows. Includes refresh schedules.',
     statA: '9 sources',
     statB: '48 KB',
     freshLabel: 'Updated 3h ago',
-    freshColor: '#34d399',
-    accentGradient: 'linear-gradient(90deg, #60a5fa, #93c5fd)',
+    freshColor: '#16a34a',
+    accentGradient: 'linear-gradient(90deg, #2563eb, #60a5fa)',
   },
   {
     id: 'known-diffs',
     name: 'Known Differences Log',
     type: 'PDF',
-    typeColor: '#fbbf24',
-    icon: <AlertTriangle size={16} style={{ color: '#fbbf24' }} />,
-    iconBg: 'rgba(251,191,36,0.1)',
+    typeColor: '#d97706',
+    icon: <AlertTriangle size={16} style={{ color: '#d97706' }} />,
+    iconBg: 'rgba(217,119,6,0.1)',
     desc: 'Dashboards where Domo output differs from source — reason and accepted workaround.',
     statA: '7 differences',
     statB: '210 KB',
     freshLabel: 'Stale — regenerate needed',
-    freshColor: '#fbbf24',
+    freshColor: '#d97706',
     stale: true,
-    cardBorder: 'rgba(245,158,11,0.2)',
-    accentGradient: 'linear-gradient(90deg, #fbbf24, #f59e0b)',
+    cardBorder: 'rgba(217,119,6,0.25)',
+    accentGradient: 'linear-gradient(90deg, #d97706, #fbbf24)',
   },
   {
     id: 'project-summary',
@@ -107,7 +107,7 @@ const docs: DocCard[] = [
     statA: '31 migrated',
     statB: '890 KB',
     freshLabel: 'Updated 2h ago',
-    freshColor: '#34d399',
+    freshColor: '#16a34a',
     accentGradient: 'linear-gradient(90deg, #f87171, #fb923c)',
   },
 ];
@@ -115,27 +115,38 @@ const docs: DocCard[] = [
 function DocCardComponent({ doc }: { doc: DocCard }) {
   const [hovered, setHovered] = useState(false);
 
-  const btnCyan = {
-    background: 'rgba(0,240,255,0.08)', border: '1px solid rgba(0,240,255,0.2)',
-    color: '#00f0ff', fontSize: 9, fontWeight: 700, borderRadius: 5,
+  const btnPrimary = {
+    background: 'rgba(108,71,255,0.10)',
+    border: '1px solid rgba(108,71,255,0.22)',
+    color: '#6c47ff',
+    fontSize: 9, fontWeight: 700, borderRadius: 5,
     padding: '4px 8px', cursor: 'pointer', transition: 'all 0.3s',
     display: 'flex', alignItems: 'center', gap: 3,
   } as const;
+
   const btnGhost = {
-    background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-    color: '#8fa0dd', fontSize: 9, fontWeight: 700, borderRadius: 5,
+    background: 'var(--surface)',
+    border: '1px solid var(--border)',
+    color: 'var(--muted)',
+    fontSize: 9, fontWeight: 700, borderRadius: 5,
     padding: '4px 8px', cursor: 'pointer', transition: 'all 0.3s',
     display: 'flex', alignItems: 'center', gap: 3,
   } as const;
-  const btnPurple = {
-    background: 'rgba(112,0,255,0.08)', border: '1px solid rgba(112,0,255,0.2)',
-    color: '#c084fc', fontSize: 9, fontWeight: 700, borderRadius: 5,
+
+  const btnShare = {
+    background: 'rgba(108,71,255,0.08)',
+    border: '1px solid rgba(108,71,255,0.20)',
+    color: '#6c47ff',
+    fontSize: 9, fontWeight: 700, borderRadius: 5,
     padding: '4px 8px', cursor: 'pointer', transition: 'all 0.3s',
     display: 'flex', alignItems: 'center', gap: 3,
   } as const;
+
   const btnAmber = {
-    background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)',
-    color: '#fbbf24', fontSize: 9, fontWeight: 700, borderRadius: 5,
+    background: 'rgba(217,119,6,0.08)',
+    border: '1px solid rgba(217,119,6,0.22)',
+    color: '#d97706',
+    fontSize: 9, fontWeight: 700, borderRadius: 5,
     padding: '4px 8px', cursor: 'pointer', transition: 'all 0.3s',
     display: 'flex', alignItems: 'center', gap: 3,
   } as const;
@@ -145,13 +156,14 @@ function DocCardComponent({ doc }: { doc: DocCard }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background: 'rgba(13,17,39,0.60)',
+        background: 'var(--card-bg)',
         backdropFilter: 'blur(12px)',
-        border: `1px solid ${doc.cardBorder ?? (hovered ? 'rgba(0,240,255,0.15)' : 'rgba(255,255,255,0.06)')}`,
+        border: `1px solid ${doc.cardBorder ?? (hovered ? 'rgba(108,71,255,0.20)' : 'var(--border)')}`,
         borderRadius: 14,
         overflow: 'hidden',
         transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)',
         transform: hovered ? 'translateY(-2px)' : 'none',
+        boxShadow: hovered ? '0 8px 28px rgba(108,71,255,0.10)' : '0 1px 8px rgba(15,23,60,0.06)',
       }}
     >
       {/* Accent line */}
@@ -175,7 +187,7 @@ function DocCardComponent({ doc }: { doc: DocCard }) {
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <p style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>{doc.name}</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>{doc.name}</p>
               <span style={{
                 fontSize: 9, fontWeight: 700,
                 color: doc.typeColor,
@@ -187,9 +199,9 @@ function DocCardComponent({ doc }: { doc: DocCard }) {
               </span>
               <span style={{
                 fontSize: 9, fontWeight: 700,
-                color: '#00f0ff',
-                background: 'rgba(0,240,255,0.08)',
-                border: '1px solid rgba(0,240,255,0.2)',
+                color: '#6c47ff',
+                background: 'rgba(108,71,255,0.09)',
+                border: '1px solid rgba(108,71,255,0.20)',
                 borderRadius: 4, padding: '1px 5px',
               }}>
                 Auto
@@ -198,22 +210,22 @@ function DocCardComponent({ doc }: { doc: DocCard }) {
           </div>
         </div>
 
-        <p style={{ fontSize: 10, color: '#8fa0dd', lineHeight: 1.5, marginBottom: 10 }}>{doc.desc}</p>
+        <p style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.5, marginBottom: 10 }}>{doc.desc}</p>
 
         {/* Stats row */}
         <div className="flex items-center gap-3 mb-2">
           <span style={{
-            fontSize: 9, color: '#8fa0dd',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.06)',
+            fontSize: 9, color: 'var(--muted)',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
             borderRadius: 4, padding: '2px 6px',
           }}>
             {doc.statA}
           </span>
           <span style={{
-            fontSize: 9, color: '#8fa0dd',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.06)',
+            fontSize: 9, color: 'var(--muted)',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
             borderRadius: 4, padding: '2px 6px',
           }}>
             {doc.statB}
@@ -221,17 +233,17 @@ function DocCardComponent({ doc }: { doc: DocCard }) {
         </div>
 
         {/* Freshness */}
-        <p style={{ fontSize: 9, color: doc.freshColor, marginBottom: 10 }}>{doc.freshLabel}</p>
+        <p style={{ fontSize: 9, color: doc.freshColor, marginBottom: 10, fontWeight: 600 }}>{doc.freshLabel}</p>
 
         {/* Actions */}
         <div className="flex items-center gap-1.5">
-          <button style={btnCyan}><Download size={9} /> Download</button>
+          <button style={btnPrimary}><Download size={9} /> Download</button>
           {doc.stale ? (
             <button style={btnAmber}><RefreshCw size={9} /> Regen now</button>
           ) : (
             <>
               <button style={btnGhost}><RefreshCw size={9} /> Regen</button>
-              <button style={btnPurple}><Share2 size={9} /> Share</button>
+              <button style={btnShare}><Share2 size={9} /> Share</button>
             </>
           )}
         </div>
@@ -243,7 +255,7 @@ function DocCardComponent({ doc }: { doc: DocCard }) {
 export default function Documents() {
   const Breadcrumb = (
     <div className="flex items-center gap-1" style={{ fontSize: 11 }}>
-      <span style={{ color: 'white', fontWeight: 600 }}>Documents</span>
+      <span style={{ color: 'var(--text)', fontWeight: 600 }}>Documents</span>
     </div>
   );
 
@@ -253,23 +265,23 @@ export default function Documents() {
       <button
         className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-300"
         style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          color: '#c0bfe8',
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          color: 'var(--text)',
           fontSize: 11,
           cursor: 'pointer',
         }}
       >
-        <ChevronRight size={11} style={{ color: '#8fa0dd' }} />
+        <ChevronRight size={11} style={{ color: 'var(--muted)' }} />
         Acme Corp — Tableau
-        <ChevronDown size={11} style={{ color: '#8fa0dd' }} />
+        <ChevronDown size={11} style={{ color: 'var(--muted)' }} />
       </button>
       <button
         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-300"
         style={{
-          background: 'transparent',
-          border: '1px solid rgba(0,240,255,0.2)',
-          color: '#00f0ff',
+          background: 'rgba(108,71,255,0.08)',
+          border: '1px solid rgba(108,71,255,0.22)',
+          color: '#6c47ff',
           fontSize: 11,
           fontWeight: 600,
           cursor: 'pointer',
@@ -286,23 +298,23 @@ export default function Documents() {
       <div className="p-5 flex flex-col gap-5">
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <StatCard label="TOTAL DOCS" value="6" />
-          <StatCard label="AUTO-GENERATED" value="5" valueColor="#00f0ff" sub="By migrationIQ" subColor="#00f0ff" />
-          <StatCard label="LAST UPDATED" value="2h ago" valueColor="#34d399" sub="All up to date" subColor="#34d399" />
-          <StatCard label="STALE" value="1" valueColor="#fbbf24" sub="Regenerate needed" subColor="#fbbf24" />
+          <StatCard icon={<FileCheck size={12} />} label="TOTAL DOCS" value="6" />
+          <StatCard icon={<CheckCircle2 size={12} />} label="AUTO-GENERATED" value="5" valueColor="#6c47ff" sub="By migrationIQ" subColor="#6c47ff" />
+          <StatCard icon={<AlertCircle size={12} />} label="LAST UPDATED" value="2h ago" valueColor="#16a34a" sub="All up to date" subColor="#16a34a" />
+          <StatCard icon={<Trash2 size={12} />} label="STALE" value="1" valueColor="#d97706" sub="Regenerate needed" subColor="#d97706" />
         </div>
 
         {/* Section header */}
         <div className="flex items-center justify-between">
-          <p style={{ fontSize: 10, fontWeight: 600, color: '#8fa0dd', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
             Project deliverables
           </p>
           <button
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-300"
             style={{
-              background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: '#8fa0dd',
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              color: 'var(--muted)',
               fontSize: 10,
               fontWeight: 600,
               cursor: 'pointer',
@@ -323,29 +335,30 @@ export default function Documents() {
         {/* Download banner */}
         <div
           style={{
-            background: 'rgba(13,17,39,0.60)',
+            background: 'var(--card-bg)',
             backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(0,240,255,0.15)',
+            border: '1px solid rgba(108,71,255,0.18)',
             borderRadius: 14,
             padding: '16px 20px',
             display: 'flex',
             alignItems: 'center',
             gap: 14,
             justifyContent: 'space-between',
+            boxShadow: '0 2px 12px rgba(108,71,255,0.08)',
           }}
         >
           <div className="flex items-center gap-3">
             <div style={{
               width: 36, height: 36, borderRadius: 10,
-              background: 'linear-gradient(135deg, #00f0ff, #7000ff)',
+              background: 'linear-gradient(135deg, #6c47ff, #0066cc)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
             }}>
               <Package size={16} color="white" />
             </div>
             <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>Download complete package</p>
-              <p style={{ fontSize: 10, color: '#8fa0dd', marginTop: 2 }}>All 6 documents bundled as zip</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>Download complete package</p>
+              <p style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2 }}>All 6 documents bundled as zip</p>
             </div>
           </div>
           <button
@@ -360,20 +373,39 @@ export default function Documents() {
   );
 }
 
-function StatCard({ label, value, valueColor, sub, subColor }: {
-  label: string; value: string; valueColor?: string; sub?: string; subColor?: string;
+function StatCard({ icon, label, value, valueColor, sub, subColor }: {
+  icon?: React.ReactNode; label: string; value: string; valueColor?: string; sub?: string; subColor?: string;
 }) {
   return (
-    <div style={{
-      background: 'rgba(13,17,39,0.60)',
-      backdropFilter: 'blur(12px)',
-      border: '1px solid rgba(255,255,255,0.06)',
-      borderRadius: 10,
-      padding: '10px 12px',
-    }}>
-      <p style={{ fontSize: 9, fontWeight: 600, color: '#8fa0dd', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{label}</p>
-      <p style={{ fontSize: 18, fontWeight: 800, color: valueColor || '#f1f3f9', lineHeight: 1 }}>{value}</p>
-      {sub && <p style={{ fontSize: 9, color: subColor || '#8fa0dd', marginTop: 3 }}>{sub}</p>}
+    <div 
+      className="relative overflow-hidden transition-all duration-300 cursor-default"
+      style={{
+        background: 'var(--card-bg)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid var(--border)',
+        borderRadius: 10,
+        padding: '10px 12px',
+        boxShadow: '0 1px 6px rgba(15,23,60,0.05)',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 6px 16px rgba(111,43,139,0.1)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'none';
+        e.currentTarget.style.boxShadow = '0 1px 6px rgba(15,23,60,0.05)';
+      }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <p style={{ fontSize: 9, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
+        {icon && (
+          <div className="flex items-center justify-center rounded-md w-6 h-6" style={{ background: 'rgba(111,43,139,0.08)', color: 'var(--purple)' }}>
+            {icon}
+          </div>
+        )}
+      </div>
+      <p style={{ fontSize: 18, fontWeight: 800, color: valueColor || 'var(--text)', lineHeight: 1 }}>{value}</p>
+      {sub && <p style={{ fontSize: 9, color: subColor || 'var(--muted)', marginTop: 3 }}>{sub}</p>}
     </div>
   );
 }

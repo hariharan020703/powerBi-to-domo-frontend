@@ -70,8 +70,8 @@ function SettingRow({
     <div
       className="flex items-center gap-3"
       style={{
-        background: 'rgba(13,17,39,0.5)',
-        border: '1px solid rgba(255,255,255,0.05)',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
         borderRadius: 10,
         padding: '10px 14px',
       }}
@@ -85,8 +85,8 @@ function SettingRow({
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p style={{ fontSize: 11, fontWeight: 600, color: 'white' }}>{label}</p>
-        {sub && <p style={{ fontSize: 9, color: '#8fa0dd', marginTop: 1 }}>{sub}</p>}
+        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)' }}>{label}</p>
+        {sub && <p style={{ fontSize: 9, color: 'var(--muted)', marginTop: 1 }}>{sub}</p>}
       </div>
       {control}
     </div>
@@ -97,12 +97,12 @@ function GroupHeader({ title }: { title: string }) {
   return (
     <p style={{
       fontSize: 9, fontWeight: 600,
-      color: '#8fa0dd',
+      color: 'var(--muted)',
       textTransform: 'uppercase',
       letterSpacing: '0.06em',
       marginBottom: 8,
       paddingBottom: 8,
-      borderBottom: '1px solid rgba(255,255,255,0.05)',
+      borderBottom: '1px solid var(--border)',
     }}>
       {title}
     </p>
@@ -125,7 +125,7 @@ export default function Settings() {
   };
 
   const TopbarLeft = (
-    <h1 style={{ fontSize: 14, fontWeight: 700, color: 'white' }}>Settings</h1>
+    <h1 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>Settings</h1>
   );
 
   const TopbarRight = (
@@ -186,14 +186,15 @@ export default function Settings() {
           {/* Profile card */}
           <div
             style={{
-              background: 'rgba(13,17,39,0.6)',
+              background: 'var(--card-bg)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: '1px solid var(--border)',
               borderRadius: 12,
               padding: '16px 18px',
               display: 'flex',
               alignItems: 'center',
               gap: 14,
+              boxShadow: '0 1px 8px rgba(15,23,60,0.05)',
             }}
           >
             <div
@@ -208,8 +209,8 @@ export default function Settings() {
               GA
             </div>
             <div className="flex-1">
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'white' }}>Gowtham AR</p>
-              <p style={{ fontSize: 10, color: '#8fa0dd' }}>gowtham@migrationiq.io</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>Gowtham AR</p>
+              <p style={{ fontSize: 10, color: 'var(--muted)' }}>gowtham@migrationiq.io</p>
             </div>
             <div className="flex items-center gap-3">
               <div
@@ -238,8 +239,8 @@ export default function Settings() {
               {/* Theme picker */}
               <div
                 style={{
-                  background: 'rgba(13,17,39,0.5)',
-                  border: '1px solid rgba(255,255,255,0.05)',
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
                   borderRadius: 10,
                   padding: '10px 14px',
                 }}
@@ -247,15 +248,15 @@ export default function Settings() {
                 <div className="flex items-center gap-3 mb-3">
                   <div style={{
                     width: 30, height: 30, borderRadius: 8,
-                    background: 'rgba(112,0,255,0.12)',
+                    background: 'rgba(108,71,255,0.10)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     flexShrink: 0,
                   }}>
-                    <Palette size={13} style={{ color: '#c084fc' }} />
+                    <Palette size={13} style={{ color: '#6c47ff' }} />
                   </div>
                   <div className="flex-1">
-                    <p style={{ fontSize: 11, fontWeight: 600, color: 'white' }}>Theme mode</p>
-                    <p style={{ fontSize: 9, color: '#8fa0dd' }}>Controls the overall color scheme</p>
+                    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)' }}>Theme mode</p>
+                    <p style={{ fontSize: 9, color: 'var(--muted)' }}>Controls the overall color scheme</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -367,8 +368,8 @@ export default function Settings() {
             <GroupHeader title="Danger zone" />
             <div
               style={{
-                background: 'rgba(248,113,113,0.04)',
-                border: '1px solid rgba(248,113,113,0.15)',
+                background: 'rgba(220,38,38,0.04)',
+                border: '1px solid rgba(220,38,38,0.15)',
                 borderRadius: 10,
                 padding: '12px 14px',
                 display: 'flex',
@@ -378,8 +379,8 @@ export default function Settings() {
               }}
             >
               <div>
-                <p style={{ fontSize: 11, fontWeight: 600, color: 'white' }}>Delete account</p>
-                <p style={{ fontSize: 9, color: '#8fa0dd', marginTop: 2 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)' }}>Delete account</p>
+                <p style={{ fontSize: 9, color: 'var(--muted)', marginTop: 2 }}>
                   Permanently delete your account and all associated data.
                 </p>
               </div>
@@ -392,7 +393,7 @@ export default function Settings() {
           {/* Version line */}
           <div
             className="flex items-center justify-between"
-            style={{ paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.05)' }}
+            style={{ paddingTop: 8, borderTop: '1px solid var(--border)' }}
           >
             <p style={{ fontSize: 9, color: 'rgba(143,160,221,0.3)' }}>© 2026 migrationIQ</p>
             <span style={{

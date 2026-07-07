@@ -8,6 +8,7 @@ import MigrationProgress from './pages/MigrationProgress';
 import Connections from './pages/Connections';
 import Documents from './pages/Documents';
 import Settings from './pages/Settings';
+import ReportLineage from './pages/ReportLineage';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="/app/migration" element={<MigrationProgress />} />
           <Route path="/app/connections" element={<Connections />} />
           <Route path="/app/dashboards" element={<DashboardInventory />} />
+          <Route path="/app/report/:id" element={<ReportLineage />} />
           <Route path="/app/documents" element={<Documents />} />
           <Route path="/app/settings" element={<Settings />} />
         </Routes>

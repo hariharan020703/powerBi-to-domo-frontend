@@ -264,11 +264,11 @@ export default function MigrationProgress() {
 
   const Breadcrumb = (
     <div className="flex items-center gap-1" style={{ fontSize: 11 }}>
-      <span style={{ color: '#8fa0dd' }}>Projects</span>
-      <ChevronRight size={11} style={{ color: '#8fa0dd' }} />
-      <span style={{ color: '#8fa0dd' }}>All Power BI Workspaces</span>
-      <ChevronRight size={11} style={{ color: '#8fa0dd' }} />
-      <span style={{ color: 'white', fontWeight: 600 }}>Migration Progress</span>
+      <span style={{ color: 'var(--muted)' }}>Projects</span>
+      <ChevronRight size={11} style={{ color: 'var(--muted)' }} />
+      <span style={{ color: 'var(--muted)' }}>All Power BI Workspaces</span>
+      <ChevronRight size={11} style={{ color: 'var(--muted)' }} />
+      <span style={{ color: 'var(--text)', fontWeight: 600 }}>Migration Progress</span>
     </div>
   );
 
@@ -301,11 +301,12 @@ export default function MigrationProgress() {
           {/* Circular progress */}
           <div
             style={{
-              background: 'rgba(13,17,39,0.60)',
+              background: 'var(--card-bg)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: '1px solid var(--border)',
               borderRadius: 14,
               padding: '16px 12px',
+              boxShadow: '0 1px 8px rgba(15,23,60,0.05)',
             }}
           >
             <div className="flex justify-center mb-3">
@@ -335,10 +336,10 @@ export default function MigrationProgress() {
                 </div>
               </div>
             </div>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'white', textAlign: 'center' }}>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)', textAlign: 'center' }}>
               Power BI Accounts
             </p>
-            <p style={{ fontSize: 9, color: '#8fa0dd', textAlign: 'center', marginTop: 2 }}>
+            <p style={{ fontSize: 9, color: 'var(--muted)', textAlign: 'center', marginTop: 2 }}>
               {loading ? 'Scanning...' : `${totalMigrated} of ${totalCount} reports migrated`}
             </p>
           </div>
@@ -346,24 +347,25 @@ export default function MigrationProgress() {
           {/* Wave plan */}
           <div
             style={{
-              background: 'rgba(13,17,39,0.60)',
+              background: 'var(--card-bg)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: '1px solid var(--border)',
               borderRadius: 14,
               padding: '12px',
+              boxShadow: '0 1px 8px rgba(15,23,60,0.05)',
             }}
           >
-            <p style={{ fontSize: 9, fontWeight: 600, color: '#8fa0dd', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+            <p style={{ fontSize: 9, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
               Wave Plan
             </p>
             <div className="flex flex-col gap-3">
               {waveData.map((w, i) => (
                 <div key={i}>
                   <div className="flex items-center justify-between mb-1">
-                    <span style={{ fontSize: 9, fontWeight: 600, color: 'white' }}>{w.name}</span>
-                    <span style={{ fontSize: 9, color: '#8fa0dd' }}>{w.count}</span>
+                    <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--text)' }}>{w.name}</span>
+                    <span style={{ fontSize: 9, color: 'var(--muted)' }}>{w.count}</span>
                   </div>
-                  <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden', marginBottom: 3 }}>
+                  <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden', marginBottom: 3 }}>
                     <div style={{ height: '100%', width: `${w.progress}%`, background: w.barBg, borderRadius: 2 }} />
                   </div>
                   <span style={{ fontSize: 8, color: w.statusColor }}>{w.status}</span>
@@ -375,14 +377,15 @@ export default function MigrationProgress() {
           {/* Timeline */}
           <div
             style={{
-              background: 'rgba(13,17,39,0.60)',
+              background: 'var(--card-bg)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: '1px solid var(--border)',
               borderRadius: 14,
               padding: '12px',
+              boxShadow: '0 1px 8px rgba(15,23,60,0.05)',
             }}
           >
-            <p style={{ fontSize: 9, fontWeight: 600, color: '#8fa0dd', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+            <p style={{ fontSize: 9, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
               Timeline
             </p>
             <div className="relative flex flex-col gap-0">
@@ -396,7 +399,7 @@ export default function MigrationProgress() {
                         top: 10,
                         width: 1,
                         height: 20,
-                        background: 'rgba(255,255,255,0.08)',
+                        background: 'var(--border)',
                       }}
                     />
                   )}
@@ -413,10 +416,10 @@ export default function MigrationProgress() {
                     }}
                   />
                   <div className="flex items-center justify-between flex-1 pb-3">
-                    <span style={{ fontSize: 9, color: t.color === 'rgba(255,255,255,0.15)' ? '#8fa0dd' : 'white', fontWeight: 500 }}>
+                    <span style={{ fontSize: 9, color: t.color === 'rgba(255,255,255,0.15)' ? 'var(--muted)' : 'var(--text)', fontWeight: 500 }}>
                       {t.label}
                     </span>
-                    <span style={{ fontSize: 9, color: '#8fa0dd' }}>{t.date}</span>
+                    <span style={{ fontSize: 9, color: 'var(--muted)' }}>{t.date}</span>
                   </div>
                 </div>
               ))}
@@ -426,11 +429,12 @@ export default function MigrationProgress() {
           {/* Stats grid */}
           <div
             style={{
-              background: 'rgba(13,17,39,0.60)',
+              background: 'var(--card-bg)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: '1px solid var(--border)',
               borderRadius: 14,
               padding: '12px',
+              boxShadow: '0 1px 8px rgba(15,23,60,0.05)',
             }}
           >
             <div className="grid grid-cols-2 gap-2">
@@ -442,9 +446,10 @@ export default function MigrationProgress() {
               ].map(s => (
                 <div key={s.label}
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
+                    background: 'var(--surface)',
                     borderRadius: 8,
                     padding: '8px',
+                    border: '1px solid var(--border)',
                   }}
                 >
                   <p style={{
@@ -535,11 +540,12 @@ function ExecCard({ item }: { item: ExecItem }) {
   return (
     <div
       style={{
-        background: isActive ? 'rgba(167,139,250,0.05)' : 'rgba(13,17,39,0.60)',
+        background: isActive ? 'rgba(108,71,255,0.05)' : 'var(--card-bg)',
         backdropFilter: 'blur(12px)',
-        border: `1px solid ${isActive ? 'rgba(167,139,250,0.3)' : isError ? 'rgba(248,113,113,0.15)' : 'rgba(255,255,255,0.06)'}`,
+        border: `1px solid ${isActive ? 'rgba(108,71,255,0.25)' : isError ? 'rgba(248,113,113,0.15)' : 'var(--border)'}`,
         borderRadius: 12,
         padding: '12px 14px',
+        boxShadow: '0 1px 6px rgba(15,23,60,0.05)',
         transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)',
       }}
     >
@@ -561,7 +567,7 @@ function ExecCard({ item }: { item: ExecItem }) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-2">
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>{item.name}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>{item.name}</span>
             <span style={{ fontSize: 9, color: isActive ? '#a78bfa' : isDone ? '#34d399' : '#f87171', flexShrink: 0 }}>
               {item.subtitle}
             </span>
@@ -587,7 +593,7 @@ function ExecCard({ item }: { item: ExecItem }) {
             ))}
           </div>
 
-          <p style={{ fontSize: 10, color: '#8fa0dd', lineHeight: 1.5 }}>
+          <p style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.5 }}>
             {highlightText(item.detail, item.detailHighlights)}
           </p>
         </div>
