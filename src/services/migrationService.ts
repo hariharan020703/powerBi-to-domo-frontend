@@ -65,3 +65,7 @@ export function subscribeToMigrationStatus(
     }
   };
 }
+
+export async function stopMigration(reportId: string): Promise<any> {
+  return apiClient.post('/api/migration/stop', { reportId });
+}

@@ -81,7 +81,6 @@ export default function Projects() {
               progressColor: 'linear-gradient(90deg, #7000ff, #00f0ff)',
               chips: [
                 { label: `${reportsCount} reports`, color: '#00f0ff' },
-                { label: `${datasetsCount} datasets`, color: '#a78bfa' },
               ],
               date: 'Active Now',
             };
@@ -127,17 +126,15 @@ export default function Projects() {
     return acc + (isNaN(count) ? 0 : count);
   }, 0);
 
-  // Dynamic values representing mock migration completion
-  const totalMigratedCount = projects.reduce((acc, p) => {
-    const reportsText = p.subtitle.split(' · ')[1];
-    const totalRep = parseInt(reportsText || '0', 10);
-    if (isNaN(totalRep)) return acc;
-    const migrated = Math.round(totalRep * (p.progress / 100));
-    return acc + migrated;
-  }, 0);
+  // Fetch actual migration statuses from localStorage
+  const savedStatuses = localStorage.getItem('powerbi_migration_statuses');
+  const migrationStatuses = savedStatuses ? JSON.parse(savedStatuses) : {};
 
-  const completionPercentage = totalReportsCount > 0 ? Math.round((totalMigratedCount / totalReportsCount) * 100) : 0;
-  const pendingReviewCount = Math.round(totalReportsCount * 0.15);
+  // Count how many are actually migrated
+  const totalMigratedCount = Object.values(migrationStatuses).filter(status => status === 'migrated').length;
+
+  // Count how many are in error status (pending review)
+  const pendingReviewCount = Object.values(migrationStatuses).filter(status => status === 'error').length;
 
   const tabs: { label: Tab; count?: number }[] = [
     { label: 'All', count: totalProjects },
@@ -150,14 +147,6 @@ export default function Projects() {
     <>
       <AppShell
         topbarLeft={<h1 className="font-bold text-base text-white">Projects</h1>}
-        topbarRight={
-          <button
-            onClick={() => setModalOpen(true)}
-            className="btn-primary flex items-center gap-1.5 px-4 py-2 text-xs font-semibold"
-          >
-            <Plus size={13} /> New project
-          </button>
-        }
       >
         <div className="p-6 max-w-6xl">
           {/* Stats row */}
@@ -231,7 +220,7 @@ export default function Projects() {
           ) : projects.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4 text-center gap-1" style={{ color: '#8fa0dd', fontSize: 12 }}>
               <span className="text-white font-semibold">No Projects Found</span>
-              <span>Check your Power BI settings or click "New project" above.</span>
+              <span>Check your Power BI settings.</span>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
@@ -266,29 +255,12 @@ export default function Projects() {
                     </span>
                   </div>
 
-                  {/* Progress */}
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[10px] font-medium" style={{ color: '#8fa0dd' }}>Progress</span>
-                      <span className="text-[10px] font-bold text-white">{p.progress}%</span>
-                    </div>
-                    <div
-                      className="w-full rounded-full overflow-hidden"
-                      style={{ height: 5, background: 'rgba(255,255,255,0.06)' }}
-                    >
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${p.progress}%`, background: p.progressColor }}
-                      />
-                    </div>
-                  </div>
-
                   {/* Chips */}
                   <div className="flex flex-wrap gap-1.5">
                     {p.chips.map(c => (
                       <span
                         key={c.label}
-                        className="text-[9px] font-semibold px-2 py-1 rounded-full"
+                        className="text-xs font-semibold px-3 py-1.5 rounded-full"
                         style={{
                           background: `${c.color}18`,
                           border: `1px solid ${c.color}33`,
@@ -317,37 +289,7 @@ export default function Projects() {
                 </div>
               ))}
 
-              {/* New project card */}
-              <button
-                onClick={() => setModalOpen(true)}
-                className="flex flex-col items-center justify-center p-8 rounded-2xl transition-all duration-300 group cursor-pointer"
-                style={{
-                  border: '1.5px dashed var(--border)',
-                  background: 'transparent',
-                  minHeight: 200,
-                }}
-                onMouseOver={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(108,71,255,0.30)';
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(108,71,255,0.03)';
-                }}
-                onMouseOut={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
-                  (e.currentTarget as HTMLElement).style.background = 'transparent';
-                }}
-              >
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center mb-3 transition-all duration-300"
-                  style={{
-                    border: '1.5px dashed var(--border)',
-                  }}
-                >
-                  <Plus size={18} style={{ color: 'var(--muted)' }} />
-                </div>
-                <p className="font-semibold text-sm mb-1" style={{ color: 'var(--text)' }}>New project</p>
-                <p className="text-xs text-center" style={{ color: 'var(--muted)' }}>
-                  Connect Tableau, Power BI, Looker or Quicksight
-                </p>
-              </button>
+
             </div>
           )}
         </div>

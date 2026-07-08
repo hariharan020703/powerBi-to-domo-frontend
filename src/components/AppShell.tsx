@@ -11,7 +11,6 @@ import {
   X,
 } from 'lucide-react';
 import CanvasBackground from './CanvasBackground';
-import ClarifyPanel from './ClarifyPanel';
 
 interface NavItem {
   label: string;
@@ -23,10 +22,10 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Projects', icon: <FolderOpen size={15} />, to: '/app' },
-  { label: 'Dashboards', icon: <LayoutDashboard size={15} />, to: '/app/dashboards', badge: 48 },
+  { label: 'Dashboards', icon: <LayoutDashboard size={15} />, to: '/app/dashboards' },
   { label: 'Migration', icon: <ArrowRightLeft size={15} />, to: '/app/migration' },
   { label: 'Connections', icon: <Plug size={15} />, to: '/app/connections' },
-  { label: 'Documents', icon: <FileText size={15} />, to: '/app/documents' },
+  // { label: 'Documents', icon: <FileText size={15} />, to: '/app/documents' },
 ];
 
 const configItems: NavItem[] = [
@@ -252,8 +251,6 @@ export default function AppShell({ children, topbarLeft, topbarRight, dimSidebar
           {children}
         </main>
       </div>
-
-      <ClarifyPanel />
     </div>
   );
 }

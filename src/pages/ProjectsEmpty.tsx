@@ -19,14 +19,6 @@ export default function ProjectsEmpty() {
     <>
       <AppShell
         topbarLeft={<h1 className="font-bold text-base text-white">Projects</h1>}
-        topbarRight={
-          <button
-            onClick={() => setModalOpen(true)}
-            className="btn-primary flex items-center gap-1.5 px-4 py-2 text-xs font-semibold"
-          >
-            <Plus size={13} /> New project
-          </button>
-        }
         dimSidebar
       >
         <div className="flex flex-col items-center justify-center min-h-full px-6 py-16">

@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
-import { ChevronRight, ArrowLeft, X, Loader2 } from 'lucide-react';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
+import { ChevronRight, ArrowLeft, X, Loader2, Play } from 'lucide-react';
 import AppShell from '../components/AppShell';
-import { apiClient } from '../config/api';
+import { fetchNodeAnalysis } from '../config/api';
+import { startMigration } from '../services/migrationService';
 import {
   ReactFlow,
   MiniMap,
@@ -102,9 +103,25 @@ const createNodes = (reportData: any) => [
       fontWeight: 600,
     }
   },
+  {
+    id: 'cards',
+    type: 'default',
+    data: { label: 'Cards' },
+    position: { x: 1250, y: 150 },
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+    style: {
+      background: 'var(--card-bg)',
+      color: 'var(--text)',
+      border: '1px solid var(--border)',
+      borderRadius: '8px',
+      padding: '12px 20px',
+      fontWeight: 600,
+    }
+  },
 ];
 
-const initialEdges = [
+const initialEdges: Edge[] = [
   {
     id: 'e-report-dataset',
     source: 'report',
@@ -145,91 +162,17 @@ const initialEdges = [
     style: { stroke: 'var(--purple)', strokeWidth: 2 },
     markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--purple)' }
   },
+  {
+    id: 'e-measures-cards',
+    source: 'measures',
+    target: 'cards',
+    animated: true,
+    style: { stroke: 'var(--purple)', strokeWidth: 2 },
+    markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--purple)' }
+  },
 ];
 
-// Fetch real data from existing backend query endpoint using DAX
-const fetchNodeAnalysis = async (nodeId: string, datasetId: string | undefined, workspaceId: string | undefined) => {
-  if (!datasetId) return { error: 'No dataset ID available for this report.' };
 
-  if (nodeId === 'powerquery') {
-    try {
-      let finalWorkspaceId = workspaceId;
-
-      // Auto-discover workspace ID if missing
-      if (!finalWorkspaceId) {
-        const wsRes = await apiClient.get('/api/powerbi/workspaces');
-        const workspaces = wsRes?.value || wsRes || [];
-        for (const ws of workspaces) {
-          try {
-            const dsRes = await apiClient.get(`/api/powerbi/workspaces/${ws.id}/datasets`);
-            const datasets = dsRes?.value || dsRes || [];
-            if (datasets.some((d: any) => d.id === datasetId)) {
-              finalWorkspaceId = ws.id;
-              break;
-            }
-          } catch (e) {
-            // ignore
-          }
-        }
-      }
-
-      if (!finalWorkspaceId) throw new Error('Could not determine Workspace ID to fetch Power Query via Scanner API.');
-
-      const data = await apiClient.get(`/api/powerbi/workspaces/${finalWorkspaceId}/datasets/${datasetId}/powerquery`);
-      return data;
-    } catch (err: any) {
-      return { error: err.message || 'Failed to fetch Power Query metadata via Scanner API.' };
-    }
-  }
-
-  let query = '';
-  switch (nodeId) {
-    case 'dataset':
-      query = 'EVALUATE INFO.VIEW.TABLES()';
-      break;
-    case 'modelview':
-      query = 'EVALUATE INFO.VIEW.RELATIONSHIPS()';
-      break;
-    case 'measures':
-      query = 'SELECT [MEASURE_NAME], [EXPRESSION] FROM $SYSTEM.MDSCHEMA_MEASURES';
-      break;
-    case 'report':
-      return { info: 'Report visualization layer. Metadata not exposed via DAX.' };
-    default:
-      return null;
-  }
-
-  try {
-    const data = await apiClient.post(`/api/powerbi/datasets/${datasetId}/query`, { query });
-    return data?.results?.[0]?.tables?.[0]?.rows || data;
-  } catch (err: any) {
-    // Attempt fallback for dataset
-    if (nodeId === 'dataset' && query.includes('INFO.VIEW')) {
-      try {
-        const fbQuery = 'SELECT [TABLE_NAME] FROM $SYSTEM.DBSCHEMA_TABLES';
-        const fbData = await apiClient.post(`/api/powerbi/datasets/${datasetId}/query`, { query: fbQuery });
-        return fbData?.results?.[0]?.tables?.[0]?.rows || fbData;
-      } catch (fbErr: any) {
-        return { error: fbErr.message || 'Failed to fetch data with fallback query.' };
-      }
-    }
-    // Attempt fallback for measures
-    if (nodeId === 'measures' && query.includes('MDSCHEMA_MEASURES')) {
-      try {
-        const fbQuery = 'SELECT [NAME], [EXPRESSION] FROM $SYSTEM.TMSCHEMA_MEASURES';
-        const fbData = await apiClient.post(`/api/powerbi/datasets/${datasetId}/query`, { query: fbQuery });
-        return fbData?.results?.[0]?.tables?.[0]?.rows || fbData;
-      } catch (fbErr: any) {
-        return { error: fbErr.message || 'Failed to fetch measures with fallback query.' };
-      }
-    }
-    return {
-      error: err.message || 'Failed to fetch data',
-      note: 'Some DAX INFO views might not be supported on this dataset or require Premium capacity.',
-      queryAttempted: query
-    };
-  }
-}
 
 export default function ReportLineage() {
   const { id } = useParams();
@@ -244,6 +187,36 @@ export default function ReportLineage() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
 
+  const navigate = useNavigate();
+
+  const handleStartMigration = useCallback(async () => {
+    if (!id) return;
+    
+    try {
+      const saved = localStorage.getItem('powerbi_migration_statuses');
+      const statuses = saved ? JSON.parse(saved) : {};
+      statuses[id] = 'in-progress';
+      localStorage.setItem('powerbi_migration_statuses', JSON.stringify(statuses));
+    } catch (e) {
+      console.error(e);
+    }
+
+    try {
+      // Non-blocking trigger start
+      startMigration({
+        reportId: id,
+        reportName: reportData?.name || 'Report',
+        datasetId: reportData?.datasetId,
+        workspaceId: reportData?.datasetWorkspaceId || reportData?.workspaceId || '',
+        isDashboard: false
+      });
+    } catch (err: any) {
+      console.error('Migration start API call failed:', err);
+    }
+
+    navigate('/app/migration');
+  }, [id, reportData, navigate]);
+
   const onConnect = useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
     [setEdges],
@@ -257,11 +230,11 @@ export default function ReportLineage() {
 
     // Fetch real data from backend using DAX query mappings or Scanner API
     const workspaceIdToUse = reportData?.datasetWorkspaceId || reportData?.workspaceId;
-    const data = await fetchNodeAnalysis(node.id, reportData?.datasetId, workspaceIdToUse);
+    const data = await fetchNodeAnalysis(node.id, reportData?.datasetId, workspaceIdToUse, id, reportData?.name);
 
     setSelectedNodeData(data);
     setIsFetching(false);
-  }, [reportData]);
+  }, [reportData, id]);
 
   const Breadcrumb = (
     <div className="flex items-center gap-1.5" style={{ fontSize: 11 }}>
@@ -279,9 +252,23 @@ export default function ReportLineage() {
   return (
     <AppShell topbarLeft={Breadcrumb}>
       <div className="p-5 h-[calc(100vh-60px)] flex flex-col gap-4 relative overflow-hidden">
-        <div className="flex flex-col gap-1">
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>Report Architecture</h2>
-          <p style={{ fontSize: 13, color: 'var(--muted)' }}>Interactive lineage showing Dataset, Power Query, Measures, Model View, and Report dependencies.</p>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>Report Architecture</h2>
+            <p style={{ fontSize: 13, color: 'var(--muted)' }}>Interactive lineage showing Dataset, Power Query, Measures, Model View, and Report dependencies.</p>
+          </div>
+          <button
+            onClick={handleStartMigration}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200"
+            style={{
+              background: 'linear-gradient(135deg, #00f0ff, #7000ff)',
+              color: 'white',
+              border: 'none',
+            }}
+          >
+            <Play size={14} className="fill-current" />
+            Migrate to Domo
+          </button>
         </div>
 
         <div style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden', background: 'var(--card-bg)', boxShadow: '0 2px 12px rgba(15,23,60,0.04)' }}>
@@ -342,7 +329,42 @@ export default function ReportLineage() {
               <div className="flex flex-col gap-6">
                 <div className="text-sm font-medium mb-2" style={{ color: 'var(--purple)' }}>Extracted Details</div>
 
-                {(selectedNodeName.includes('Measures') || selectedNodeName.includes('Dataset') || selectedNodeName.includes('Power Query') || selectedNodeName.includes('Model View')) && Array.isArray(selectedNodeData) ? (
+                {selectedNodeName.includes('Cards') && Array.isArray(selectedNodeData) ? (
+                  <div className="flex flex-col gap-2.5">
+                    <p className="text-xs" style={{ color: 'var(--muted)' }}>
+                      The following visual tiles and cards have been detected in this report and are available to migrate to Domo:
+                    </p>
+                    {selectedNodeData.map((card: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 border rounded-xl flex items-center justify-between shadow-sm"
+                        style={{
+                          background: 'rgba(0, 240, 255, 0.03)',
+                          borderColor: 'rgba(0, 240, 255, 0.15)',
+                        }}
+                      >
+                        <div>
+                          <div className="font-bold text-xs" style={{ color: 'var(--text)' }}>
+                            {card.title}
+                          </div>
+                          <div className="text-[9px] mt-1 font-semibold text-cyan-400 uppercase tracking-wider">
+                            {card.type} {card.page ? `· ${card.page}` : ''}
+                          </div>
+                        </div>
+                        <span
+                          className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                          style={{
+                            background: 'rgba(52, 211, 153, 0.15)',
+                            color: '#34d399',
+                            border: '1px solid rgba(52, 211, 153, 0.25)',
+                          }}
+                        >
+                          {card.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (selectedNodeName.includes('Measures') || selectedNodeName.includes('Dataset') || selectedNodeName.includes('Power Query') || selectedNodeName.includes('Model View')) && Array.isArray(selectedNodeData) ? (
                   selectedNodeData.length > 0 ? (
                     <div className="flex flex-col gap-2">
                       {selectedNodeData.map((m: any, idx: number) => {

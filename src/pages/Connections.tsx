@@ -175,16 +175,12 @@ function ConnectionCard({ conn }: { conn: Connection; }) {
                 <RefreshCw size={9} /> Re-sync
               </button>
               <button style={btnGhost}>Test</button>
-              <button style={btnDanger} className="flex items-center gap-1 ml-auto">
-                <Unlink size={9} /> Disconnect
-              </button>
             </>
           )}
           {conn.status === 'warning' && (
             <>
               <button style={btnAmber}>Renew token</button>
               <button style={btnGhost}>Test</button>
-              <button style={btnDanger} className="ml-auto">Disconnect</button>
             </>
           )}
           {conn.status === 'disconnected' && (
@@ -310,22 +306,12 @@ export default function Connections() {
     <>
       <AppShell
         topbarLeft={Breadcrumb}
-        topbarRight={
-          <button
-            onClick={() => setModalOpen(true)}
-            className="btn-primary flex items-center gap-1.5 px-4 py-2 text-xs font-semibold"
-          >
-            <Plus size={13} /> New connection
-          </button>
-        }
       >
         <div className="p-5 flex flex-col gap-5">
           {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <StatCard icon={<Database size={12} />} label="TOTAL CONNECTIONS" value={totalConnections.toString()} valueColor="rgba(190, 136, 255, 1)" sub="Workspaces loaded" />
             <StatCard icon={<Link2 size={12} />} label="CONNECTED" value={connectedConnections.toString()} valueColor="#34d399" sub={connectedConnections > 0 ? "All systems go" : "No active links"} subColor="#34d399" />
-            <StatCard icon={<AlertCircle size={12} />} label="WARNING" value={warningConnections.toString()} valueColor="#fbbf24" sub={warningConnections > 0 ? "Token expiring" : "No warnings"} subColor="#fbbf24" />
-            <StatCard icon={<Link2Off size={12} />} label="DISCONNECTED" value={disconnectedConnections.toString()} valueColor="#f87171" sub={disconnectedConnections > 0 ? "Auth required" : "No disconnects"} subColor="#f87171" />
           </div>
 
           {/* Section label */}
@@ -355,33 +341,6 @@ export default function Connections() {
                 <ConnectionCard key={conn.id} conn={conn} />
               ))
             )}
-
-            {/* New connection card */}
-            <button
-              onClick={() => setModalOpen(true)}
-              onMouseEnter={() => setNewHovered(true)}
-              onMouseLeave={() => setNewHovered(false)}
-              className="flex flex-col items-center justify-center gap-3 rounded-2xl transition-all duration-300"
-              style={{
-                border: `1.5px dashed ${newHovered ? 'rgba(108,71,255,0.35)' : 'var(--border)'}`,
-                background: newHovered ? 'rgba(108,71,255,0.04)' : 'transparent',
-                minHeight: 180,
-                cursor: 'pointer',
-                padding: 24,
-              }}
-            >
-              <div style={{
-                width: 36, height: 36, borderRadius: 10,
-                border: '1.5px dashed var(--border)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Plus size={16} style={{ color: 'var(--muted)' }} />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>Add new connection</p>
-                <p style={{ fontSize: 9, color: 'var(--muted)' }}>Tableau · Power BI · Looker · Quicksight · Domo</p>
-              </div>
-            </button>
           </div>
         </div>
       </AppShell>

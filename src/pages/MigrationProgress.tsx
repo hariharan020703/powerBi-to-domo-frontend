@@ -4,37 +4,10 @@ import AppShell from '../components/AppShell';
 import { usePowerBIWorkspaces } from '../hooks/usePowerBI';
 import { apiClient } from '../config/api';
 
+import { startMigration, subscribeToMigrationStatus, stopMigration } from '../services/migrationService';
+
 type Complexity = 'easy' | 'medium' | 'complex';
 type Status = 'in-progress' | 'migrated' | 'error' | 'pending';
-
-interface ExecItem {
-  id: number;
-  name: string;
-  subtitle: string;
-  state: 'active' | 'done' | 'error';
-  tags: { label: string; bg: string; border: string; color: string }[];
-  detail: string;
-  detailHighlights: string[];
-}
-
-function highlightText(text: string, highlights: string[]) {
-  let result: (string | JSX.Element)[] = [text];
-  highlights.forEach(h => {
-    result = result.flatMap(part => {
-      if (typeof part !== 'string') return [part];
-      const idx = part.indexOf(h);
-      if (idx === -1) return [part];
-      return [
-        part.slice(0, idx),
-        <span key={h} style={{ color: '#00f0ff' }}>{h}</span>,
-        part.slice(idx + h.length),
-      ];
-    });
-  });
-  return result;
-}
-
-const CIRCUMFERENCE = 2 * Math.PI * 40; // r=40
 
 export default function MigrationProgress() {
   // 1. Fetch workspaces
@@ -53,6 +26,12 @@ export default function MigrationProgress() {
       return {};
     }
   });
+
+  // Live SSE tracking state
+  const [liveProgress, setLiveProgress] = useState<Record<string, number>>({});
+  const [liveStep, setLiveStep] = useState<Record<string, string>>({});
+  const [liveResult, setLiveResult] = useState<Record<string, any>>({});
+  const [subscriptions, setSubscriptions] = useState<Record<string, any>>({});
 
   // Pull all reports/datasets in parallel to scan statuses
   useEffect(() => {
@@ -144,6 +123,62 @@ export default function MigrationProgress() {
     };
   }, []);
 
+  // Listen to live progress from SSE streams for all reports running in the background
+  useEffect(() => {
+    const inProgressReports = reports.filter(r => migrationStatuses[r.id] === 'in-progress');
+    
+    inProgressReports.forEach(report => {
+      if (subscriptions[report.id]) return; // already subscribed
+      
+      console.log(`[MIGRATION STATUS] Subscribing to live updates for report ${report.id}`);
+      
+      const sub = subscribeToMigrationStatus(
+        report.id,
+        (update) => {
+          if (update.progress !== undefined) {
+            setLiveProgress(prev => ({ ...prev, [report.id]: update.progress! }));
+          }
+          if (update.status) {
+            setLiveStep(prev => ({ ...prev, [report.id]: update.status }));
+          }
+        },
+        (result) => {
+          setLiveProgress(prev => ({ ...prev, [report.id]: 100 }));
+          setLiveStep(prev => ({ ...prev, [report.id]: 'Migration completed successfully.' }));
+          setLiveResult(prev => ({ ...prev, [report.id]: result }));
+          
+          const saved = localStorage.getItem('powerbi_migration_statuses');
+          const statuses = saved ? JSON.parse(saved) : {};
+          statuses[report.id] = 'migrated';
+          localStorage.setItem('powerbi_migration_statuses', JSON.stringify(statuses));
+          setMigrationStatuses(statuses);
+        },
+        (errorMsg) => {
+          setLiveStep(prev => ({ ...prev, [report.id]: errorMsg }));
+          
+          const saved = localStorage.getItem('powerbi_migration_statuses');
+          const statuses = saved ? JSON.parse(saved) : {};
+          statuses[report.id] = 'error';
+          localStorage.setItem('powerbi_migration_statuses', JSON.stringify(statuses));
+          setMigrationStatuses(statuses);
+        }
+      );
+      
+      setSubscriptions(prev => ({ ...prev, [report.id]: sub }));
+    });
+  }, [reports, migrationStatuses]);
+
+  // Clean up all active subscriptions on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(subscriptions).forEach((sub: any) => {
+        if (sub && typeof sub.close === 'function') {
+          sub.close();
+        }
+      });
+    };
+  }, [subscriptions]);
+
   const loading = loadingWorkspaces || loadingDetails;
 
   // Filter reports to ONLY include reports that are active ('in-progress', 'migrated', or 'error')
@@ -173,94 +208,10 @@ export default function MigrationProgress() {
     };
   });
 
-  const easyCount = activeReportsMapped.filter(r => r.complexity === 'easy').length;
-  const mediumCount = activeReportsMapped.filter(r => r.complexity === 'medium').length;
-  const complexCount = activeReportsMapped.filter(r => r.complexity === 'complex').length;
   const totalCount = activeReportsMapped.length;
-
-  const easyMigrated = activeReportsMapped.filter(r => r.complexity === 'easy' && r.status === 'migrated').length;
-  const mediumMigrated = activeReportsMapped.filter(r => r.complexity === 'medium' && r.status === 'migrated').length;
-  const complexMigrated = activeReportsMapped.filter(r => r.complexity === 'complex' && r.status === 'migrated').length;
-
-  const totalMigrated = easyMigrated + mediumMigrated + complexMigrated;
-  const progressPercent = totalCount > 0 ? Math.round((totalMigrated / totalCount) * 100) : 0;
-
-  const waveData = [
-    {
-      name: 'Wave 1 — Easy',
-      count: easyCount,
-      progress: easyCount > 0 ? Math.round((easyMigrated / easyCount) * 100) : 0,
-      status: easyCount > 0 ? `${easyMigrated} of ${easyCount} · Complete` : 'No active items',
-      statusColor: '#34d399',
-      barBg: 'linear-gradient(90deg, #00f0ff, #7000ff)',
-    },
-    {
-      name: 'Wave 2 — Medium',
-      count: mediumCount,
-      progress: mediumCount > 0 ? Math.round((mediumMigrated / mediumCount) * 100) : 0,
-      status: mediumCount > 0 ? `${mediumMigrated} of ${mediumCount} · In progress` : 'No active items',
-      statusColor: '#a78bfa',
-      barBg: 'linear-gradient(90deg, #7000ff, #a78bfa)',
-    },
-    {
-      name: 'Wave 3 — Complex',
-      count: complexCount,
-      progress: complexCount > 0 ? Math.round((complexMigrated / complexCount) * 100) : 0,
-      status: complexCount > 0 ? `${complexMigrated} of ${complexCount} · Active` : 'No active items',
-      statusColor: '#8fa0dd',
-      barBg: 'rgba(255,255,255,0.1)',
-    },
-  ];
-
-  const timeline = [
-    { label: 'Project started', date: 'Active', color: '#34d399', glow: 'rgba(52,211,153,0.5)', blink: false },
-    { label: 'Wave 1 complete', date: easyCount > 0 && easyMigrated === easyCount ? 'Done' : 'Pending', color: easyCount > 0 && easyMigrated === easyCount ? '#34d399' : 'rgba(255,255,255,0.15)', glow: 'transparent', blink: false },
-    { label: 'Wave 2 in progress', date: 'Now', color: '#00f0ff', glow: 'rgba(0,240,255,0.5)', blink: true },
-    { label: 'Wave 3 starts', date: 'Queue', color: 'rgba(255,255,255,0.15)', glow: 'transparent', blink: false },
-  ];
-
-  // Dynamic execution items mapped from active reports
-  const execItems: ExecItem[] = activeReportsMapped.map((report, idx) => {
-    let state: 'active' | 'done' | 'error' = 'done';
-    let subtitle = 'Complete';
-    if (report.status === 'in-progress') {
-      state = 'active';
-      subtitle = 'In progress · 1m';
-    } else if (report.status === 'error') {
-      state = 'error';
-      subtitle = 'Error — action needed';
-    }
-
-    const measuresCount = (report.name.length * 3) % 20 + 4;
-    const matchingDataset = datasets.find(d => d.id === report.datasetId);
-    const sourceName = matchingDataset ? matchingDataset.name : 'Power BI API';
-
-    const tags = [
-      { label: `Measures ×${measuresCount}`, bg: 'rgba(0,240,255,0.1)', border: 'rgba(0,240,255,0.2)', color: '#00f0ff' },
-      { label: `${sourceName}`, bg: 'rgba(52,211,153,0.1)', border: 'rgba(52,211,153,0.2)', color: '#34d399' },
-    ];
-
-    let detail = `All measures and visual components verified. Mapped connector to ${sourceName}. live in Domo.`;
-    let detailHighlights = [sourceName, 'live in Domo'];
-
-    if (state === 'active') {
-      detail = `Translating DAX calculations inside "${report.name}". Mapping tables and fields.`;
-      detailHighlights = [report.name, 'DAX calculations'];
-    } else if (state === 'error') {
-      detail = `Visual bindings warning in "${report.name}". Dataset connection requires credential verification in Domo.`;
-      detailHighlights = [report.name, 'credential verification'];
-    }
-
-    return {
-      id: idx + 1,
-      name: report.name,
-      subtitle: subtitle,
-      state: state,
-      tags: tags,
-      detail: detail,
-      detailHighlights: detailHighlights,
-    };
-  });
+  const migratedCount = activeReportsMapped.filter(r => r.status === 'migrated').length;
+  const inProgressCount = activeReportsMapped.filter(r => r.status === 'in-progress').length;
+  const errorsCount = activeReportsMapped.filter(r => r.status === 'error').length;
 
   const Breadcrumb = (
     <div className="flex items-center gap-1" style={{ fontSize: 11 }}>
@@ -272,206 +223,19 @@ export default function MigrationProgress() {
     </div>
   );
 
-  const TopRight = (
-    <div
-      className="flex items-center gap-2 px-3 py-1"
-      style={{
-        background: 'rgba(167,139,250,0.1)',
-        border: '1px solid rgba(167,139,250,0.25)',
-        borderRadius: 20,
-        fontSize: 10,
-        color: '#a78bfa',
-      }}
-    >
-      <div style={{
-        width: 6, height: 6, borderRadius: '50%',
-        background: '#a78bfa',
-        animation: 'blink 2s ease-in-out infinite',
-        boxShadow: '0 0 5px rgba(167,139,250,0.6)',
-      }} />
-      Migration in progress
-    </div>
-  );
-
   return (
-    <AppShell topbarLeft={Breadcrumb} topbarRight={TopRight}>
+    <AppShell topbarLeft={Breadcrumb}>
       <div className="p-5 flex gap-5 h-full">
-        {/* Left panel */}
-        <div className="flex flex-col gap-4 flex-shrink-0" style={{ width: 210 }}>
-          {/* Circular progress */}
-          <div
-            style={{
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid var(--border)',
-              borderRadius: 14,
-              padding: '16px 12px',
-              boxShadow: '0 1px 8px rgba(15,23,60,0.05)',
-            }}
-          >
-            <div className="flex justify-center mb-3">
-              <div className="relative" style={{ width: 96, height: 96 }}>
-                <svg width="96" height="96" viewBox="0 0 96 96" style={{ transform: 'rotate(-90deg)' }}>
-                  <defs>
-                    <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#00f0ff" />
-                      <stop offset="100%" stopColor="#7000ff" />
-                    </linearGradient>
-                  </defs>
-                  <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
-                  <circle
-                    cx="48" cy="48" r="40" fill="none"
-                    stroke="url(#progressGrad)"
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                    strokeDasharray={CIRCUMFERENCE}
-                    strokeDashoffset={CIRCUMFERENCE * (1 - progressPercent / 100)}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span style={{ fontSize: 22, fontWeight: 800, color: '#00f0ff', lineHeight: 1 }}>
-                    {loading ? '--' : `${progressPercent}%`}
-                  </span>
-                  <span style={{ fontSize: 9, color: '#8fa0dd', marginTop: 2 }}>complete</span>
-                </div>
-              </div>
-            </div>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)', textAlign: 'center' }}>
-              Power BI Accounts
-            </p>
-            <p style={{ fontSize: 9, color: 'var(--muted)', textAlign: 'center', marginTop: 2 }}>
-              {loading ? 'Scanning...' : `${totalMigrated} of ${totalCount} reports migrated`}
-            </p>
-          </div>
 
-          {/* Wave plan */}
-          <div
-            style={{
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid var(--border)',
-              borderRadius: 14,
-              padding: '12px',
-              boxShadow: '0 1px 8px rgba(15,23,60,0.05)',
-            }}
-          >
-            <p style={{ fontSize: 9, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-              Wave Plan
-            </p>
-            <div className="flex flex-col gap-3">
-              {waveData.map((w, i) => (
-                <div key={i}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--text)' }}>{w.name}</span>
-                    <span style={{ fontSize: 9, color: 'var(--muted)' }}>{w.count}</span>
-                  </div>
-                  <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden', marginBottom: 3 }}>
-                    <div style={{ height: '100%', width: `${w.progress}%`, background: w.barBg, borderRadius: 2 }} />
-                  </div>
-                  <span style={{ fontSize: 8, color: w.statusColor }}>{w.status}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Timeline */}
-          <div
-            style={{
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid var(--border)',
-              borderRadius: 14,
-              padding: '12px',
-              boxShadow: '0 1px 8px rgba(15,23,60,0.05)',
-            }}
-          >
-            <p style={{ fontSize: 9, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-              Timeline
-            </p>
-            <div className="relative flex flex-col gap-0">
-              {timeline.map((t, i) => (
-                <div key={i} className="flex items-start gap-2 relative">
-                  {i < timeline.length - 1 && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        left: 4,
-                        top: 10,
-                        width: 1,
-                        height: 20,
-                        background: 'var(--border)',
-                      }}
-                    />
-                  )}
-                  <div
-                    style={{
-                      width: 9,
-                      height: 9,
-                      borderRadius: '50%',
-                      background: t.color,
-                      boxShadow: t.glow !== 'transparent' ? `0 0 5px ${t.glow}` : 'none',
-                      animation: t.blink ? 'blink 2s ease-in-out infinite' : 'none',
-                      flexShrink: 0,
-                      marginTop: 1,
-                    }}
-                  />
-                  <div className="flex items-center justify-between flex-1 pb-3">
-                    <span style={{ fontSize: 9, color: t.color === 'rgba(255,255,255,0.15)' ? 'var(--muted)' : 'var(--text)', fontWeight: 500 }}>
-                      {t.label}
-                    </span>
-                    <span style={{ fontSize: 9, color: 'var(--muted)' }}>{t.date}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Stats grid */}
-          <div
-            style={{
-              background: 'var(--card-bg)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid var(--border)',
-              borderRadius: 14,
-              padding: '12px',
-              boxShadow: '0 1px 8px rgba(15,23,60,0.05)',
-            }}
-          >
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { label: 'Calculated measures', value: (totalCount * 6).toString() },
-                { label: 'Datasets synced', value: datasets.length.toString() },
-                { label: 'Reports mapped', value: totalCount.toString() },
-                { label: 'Migration complete', value: `${progressPercent}%` },
-              ].map(s => (
-                <div key={s.label}
-                  style={{
-                    background: 'var(--surface)',
-                    borderRadius: 8,
-                    padding: '8px',
-                    border: '1px solid var(--border)',
-                  }}
-                >
-                  <p style={{
-                    fontSize: 16,
-                    fontWeight: 800,
-                    background: 'linear-gradient(135deg, #00f0ff, #7000ff)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    lineHeight: 1,
-                  }}>
-                    {s.value}
-                  </p>
-                  <p style={{ fontSize: 8, color: '#8fa0dd', marginTop: 3, lineHeight: 1.3 }}>{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right panel */}
         <div className="flex-1 flex flex-col gap-4 min-w-0">
+          {/* Stats row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <StatCard label="TOTAL REPORTS" value={totalCount.toString()} valueColor="rgba(190, 136, 255, 1)" sub="Assigned for migration" />
+            <StatCard label="MIGRATED" value={migratedCount.toString()} valueColor="#34d399" sub="Complete in Domo" subColor="#34d399" />
+            <StatCard label="IN PROGRESS" value={inProgressCount.toString()} valueColor="#a78bfa" sub="Active background streams" subColor="#a78bfa" />
+            <StatCard label="ERRORS" value={errorsCount.toString()} valueColor="#f87171" sub="Need credential retry" subColor="#f87171" />
+          </div>
+
           {/* Claude ticker */}
           <div
             style={{
@@ -515,15 +279,85 @@ export default function MigrationProgress() {
                 <RefreshCw className="animate-spin text-cyan-400" size={16} />
                 <span className="text-slate-300">Retrieving active migration logs...</span>
               </div>
-            ) : activeReports.length === 0 ? (
+            ) : activeReportsMapped.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 px-4 text-center gap-1.5" style={{ color: '#8fa0dd', fontSize: 12 }}>
                 <span className="text-white font-semibold">No Active Migrations Found</span>
                 <span>Go to the "Dashboards" page and click "Start" on any report to begin migration.</span>
               </div>
             ) : (
-              execItems.map(item => (
-                <ExecCard key={item.id} item={item} />
-              ))
+              activeReportsMapped.map(report => {
+                const progress = liveProgress[report.id] !== undefined
+                  ? liveProgress[report.id]
+                  : report.status === 'migrated'
+                    ? 100
+                    : 0;
+
+                const currentStep = liveStep[report.id] || 
+                  (report.status === 'migrated'
+                    ? 'Migration completed successfully.'
+                    : report.status === 'error'
+                      ? 'Migration stopped with warnings.'
+                      : 'Pending migration initialization...');
+
+                const result = liveResult[report.id] || null;
+
+                const handleStop = async () => {
+                  try {
+                    await stopMigration(report.id);
+                    if (subscriptions[report.id]) {
+                      subscriptions[report.id].close();
+                      setSubscriptions(prev => {
+                        const next = { ...prev };
+                        delete next[report.id];
+                        return next;
+                      });
+                    }
+                    const saved = localStorage.getItem('powerbi_migration_statuses');
+                    const statuses = saved ? JSON.parse(saved) : {};
+                    statuses[report.id] = 'error';
+                    localStorage.setItem('powerbi_migration_statuses', JSON.stringify(statuses));
+                    setMigrationStatuses(statuses);
+                    setLiveStep(prev => ({ ...prev, [report.id]: 'Migration cancelled by user.' }));
+                  } catch (err) {
+                    console.error('Failed to stop migration:', err);
+                  }
+                };
+
+                const handleMigrate = async () => {
+                  try {
+                    const saved = localStorage.getItem('powerbi_migration_statuses');
+                    const statuses = saved ? JSON.parse(saved) : {};
+                    statuses[report.id] = 'in-progress';
+                    localStorage.setItem('powerbi_migration_statuses', JSON.stringify(statuses));
+                    setMigrationStatuses(statuses);
+
+                    setLiveProgress(prev => ({ ...prev, [report.id]: 5 }));
+                    setLiveStep(prev => ({ ...prev, [report.id]: 'Initializing migration pipeline...' }));
+
+                    await startMigration({
+                      reportId: report.id,
+                      reportName: report.name || 'Power BI Report',
+                      datasetId: report.datasetId,
+                      workspaceId: report.workspaceId || '',
+                      isDashboard: false
+                    });
+                  } catch (err) {
+                    console.error('Failed to restart migration:', err);
+                  }
+                };
+
+                return (
+                  <ExecCard
+                    key={report.id}
+                    report={report}
+                    progress={progress}
+                    currentStep={currentStep}
+                    result={result}
+                    onStop={handleStop}
+                    onMigrate={handleMigrate}
+                  />
+                );
+              })
             )}
           </div>
         </div>
@@ -532,72 +366,174 @@ export default function MigrationProgress() {
   );
 }
 
-function ExecCard({ item }: { item: ExecItem }) {
-  const isActive = item.state === 'active';
-  const isDone = item.state === 'done';
-  const isError = item.state === 'error';
+interface ExecCardProps {
+  report: any;
+  progress: number;
+  currentStep: string;
+  result: any;
+  onStop: () => void;
+  onMigrate: () => void;
+}
+
+function ExecCard({ report, progress, currentStep, result, onStop, onMigrate }: ExecCardProps) {
+  const isActive = report.status === 'in-progress';
+  const isDone = report.status === 'migrated';
+  const isError = report.status === 'error';
 
   return (
     <div
       style={{
-        background: isActive ? 'rgba(108,71,255,0.05)' : 'var(--card-bg)',
+        background: isActive ? 'rgba(108,71,255,0.03)' : 'var(--card-bg)',
         backdropFilter: 'blur(12px)',
-        border: `1px solid ${isActive ? 'rgba(108,71,255,0.25)' : isError ? 'rgba(248,113,113,0.15)' : 'var(--border)'}`,
+        border: `1px solid ${isActive ? 'rgba(0, 240, 255, 0.25)' : isError ? 'rgba(239, 68, 68, 0.2)' : 'var(--border)'}`,
         borderRadius: 12,
-        padding: '12px 14px',
-        boxShadow: '0 1px 6px rgba(15,23,60,0.05)',
+        padding: '16px 20px',
+        boxShadow: '0 4px 16px rgba(15,23,60,0.03)',
         transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)',
       }}
     >
-      <div className="flex items-start gap-3">
-        {/* Icon */}
-        <div
-          style={{
-            width: 28, height: 28, borderRadius: 8,
-            background: isActive ? 'rgba(167,139,250,0.12)' : isDone ? 'rgba(52,211,153,0.1)' : 'rgba(248,113,113,0.1)',
-            border: `1px solid ${isActive ? 'rgba(167,139,250,0.25)' : isDone ? 'rgba(52,211,153,0.2)' : 'rgba(248,113,113,0.2)'}`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          {isActive && <RefreshCw className="animate-spin text-purple-400" size={13} />}
-          {isDone && <CheckCircle size={13} style={{ color: '#34d399' }} />}
-          {isError && <AlertCircle size={13} style={{ color: '#f87171' }} />}
-        </div>
+      <div className="flex flex-col gap-4">
+        {/* Header section */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div
+              style={{
+                width: 32, height: 32, borderRadius: 8,
+                background: isActive ? 'rgba(0, 240, 255, 0.1)' : isDone ? 'rgba(52, 211, 153, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                border: `1px solid ${isActive ? 'rgba(0, 240, 255, 0.25)' : isDone ? 'rgba(52, 211, 153, 0.2)' : 'rgba(239, 68, 68, 0.25)'}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              {isActive && <RefreshCw className="animate-spin text-cyan-400" size={14} />}
+              {isDone && <CheckCircle size={14} style={{ color: '#34d399' }} />}
+              {isError && <AlertCircle size={14} style={{ color: '#ef4444' }} />}
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>{report.name}</span>
+              <span className="text-[10px] text-gray-400 mt-0.5">{report.workspaceName}</span>
+            </div>
+          </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>{item.name}</span>
-            <span style={{ fontSize: 9, color: isActive ? '#a78bfa' : isDone ? '#34d399' : '#f87171', flexShrink: 0 }}>
-              {item.subtitle}
+          <div className="flex items-center gap-3">
+            <span
+              className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider"
+              style={{
+                background: isActive
+                  ? 'rgba(0, 240, 255, 0.1)'
+                  : isDone
+                    ? 'rgba(52, 211, 153, 0.1)'
+                    : 'rgba(239, 68, 68, 0.1)',
+                color: isActive ? '#00f0ff' : isDone ? '#34d399' : '#ef4444',
+                border: `1px solid ${isActive ? 'rgba(0,240,255,0.2)' : isDone ? 'rgba(52,211,153,0.2)' : 'rgba(239,68,68,0.2)'}`
+              }}
+            >
+              {isActive ? 'In Progress' : isDone ? 'Migrated' : 'Stopped'}
             </span>
           </div>
+        </div>
 
-          {/* Tags */}
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {item.tags.map((tag, i) => (
-              <span
-                key={i}
+        {/* Info detail and progress bar */}
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between text-xs">
+            <span style={{ color: 'var(--muted)' }} className="max-w-[80%] truncate">
+              {currentStep}
+            </span>
+            <span className="font-bold text-cyan-400">{progress}%</span>
+          </div>
+          <div className="w-full h-2 bg-gray-700/20 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-300 ease-out"
+              style={{
+                width: `${progress}%`,
+                background: isError
+                  ? 'linear-gradient(90deg, #ff4d4f, #ff7875)'
+                  : isDone
+                    ? 'linear-gradient(90deg, #52c41a, #95de64)'
+                    : 'linear-gradient(90deg, #00f0ff, #7000ff)',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Link / Stop buttons footer */}
+        <div className="flex items-center justify-between mt-1 pt-3 border-t border-dashed" style={{ borderColor: 'var(--border)' }}>
+          <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">
+          </div>
+          {/* <div className="flex items-center gap-3">
+            {isActive && (
+              <button
+                onClick={onStop}
+                className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border"
                 style={{
-                  background: tag.bg,
-                  border: `1px solid ${tag.border}`,
-                  color: tag.color,
-                  fontSize: 9,
-                  fontWeight: 600,
-                  padding: '2px 6px',
-                  borderRadius: 4,
+                  background: 'rgba(239, 68, 68, 0.05)',
+                  borderColor: 'rgba(239, 68, 68, 0.15)',
+                  color: '#ef4444',
                 }}
               >
-                {tag.label}
-              </span>
-            ))}
-          </div>
+                Stop
+              </button>
+            )}
 
-          <p style={{ fontSize: 10, color: 'var(--muted)', lineHeight: 1.5 }}>
-            {highlightText(item.detail, item.detailHighlights)}
-          </p>
+            {isError && (
+              <button
+                onClick={onMigrate}
+                className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border cursor-pointer hover:shadow-md"
+                style={{
+                  background: 'linear-gradient(135deg, #00f0ff, #7000ff)',
+                  color: 'white',
+                  border: 'none',
+                }}
+              >
+                Migrate
+              </button>
+            )}
+
+            {isDone && (result?.domoCardUrl || report.domoCardUrl) && (
+              <a
+                href={result?.domoCardUrl || report.domoCardUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1"
+              >
+                Open in Domo →
+              </a>
+            )}
+          </div> */}
         </div>
       </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, valueColor, sub, subColor }: {
+  label: string; value: string; valueColor?: string; sub?: string; subColor?: string;
+}) {
+  return (
+    <div 
+      className="relative overflow-hidden transition-all duration-300 cursor-default"
+      style={{
+        background: 'var(--card-bg)',
+        backdropFilter: 'blur(12px)',
+        border: '1px solid var(--border)',
+        borderRadius: 10,
+        padding: '10px 12px',
+        boxShadow: '0 1px 6px rgba(15,23,60,0.05)',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 6px 16px rgba(111,43,139,0.1)';
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'none';
+        e.currentTarget.style.boxShadow = '0 1px 6px rgba(15,23,60,0.05)';
+      }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <p style={{ fontSize: 9, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</p>
+      </div>
+      <p style={{ fontSize: 18, fontWeight: 800, color: valueColor || 'var(--text)', lineHeight: 1 }}>{value}</p>
+      {sub && <p style={{ fontSize: 9, color: subColor || 'var(--muted)', marginTop: 3 }}>{sub}</p>}
     </div>
   );
 }
