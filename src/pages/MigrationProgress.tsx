@@ -273,7 +273,7 @@ export default function MigrationProgress() {
           </div>
 
           {/* Execution log */}
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {loading ? (
               <div className="flex items-center justify-center py-20 gap-2" style={{ color: '#00f0ff', fontSize: 12 }}>
                 <RefreshCw className="animate-spin text-cyan-400" size={16} />
@@ -386,38 +386,38 @@ function ExecCard({ report, progress, currentStep, result, onStop, onMigrate }: 
         background: isActive ? 'rgba(108,71,255,0.03)' : 'var(--card-bg)',
         backdropFilter: 'blur(12px)',
         border: `1px solid ${isActive ? 'rgba(0, 240, 255, 0.25)' : isError ? 'rgba(239, 68, 68, 0.2)' : 'var(--border)'}`,
-        borderRadius: 12,
-        padding: '16px 20px',
+        borderRadius: 10,
+        padding: '12px 16px',
         boxShadow: '0 4px 16px rgba(15,23,60,0.03)',
         transition: 'all 0.4s cubic-bezier(0.16,1,0.3,1)',
       }}
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         {/* Header section */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
             <div
               style={{
-                width: 32, height: 32, borderRadius: 8,
+                width: 28, height: 28, borderRadius: 6,
                 background: isActive ? 'rgba(0, 240, 255, 0.1)' : isDone ? 'rgba(52, 211, 153, 0.1)' : 'rgba(239, 68, 68, 0.1)',
                 border: `1px solid ${isActive ? 'rgba(0, 240, 255, 0.25)' : isDone ? 'rgba(52, 211, 153, 0.2)' : 'rgba(239, 68, 68, 0.25)'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
               }}
             >
-              {isActive && <RefreshCw className="animate-spin text-cyan-400" size={14} />}
-              {isDone && <CheckCircle size={14} style={{ color: '#34d399' }} />}
-              {isError && <AlertCircle size={14} style={{ color: '#ef4444' }} />}
+              {isActive && <RefreshCw className="animate-spin text-cyan-400" size={12} />}
+              {isDone && <CheckCircle size={12} style={{ color: '#34d399' }} />}
+              {isError && <AlertCircle size={12} style={{ color: '#ef4444' }} />}
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>{report.name}</span>
-              <span className="text-[10px] text-gray-400 mt-0.5">{report.workspaceName}</span>
+              <span className="font-bold text-xs" style={{ color: 'var(--text)' }}>{report.name}</span>
+              <span className="text-[9px] text-gray-400 mt-0.5">{report.workspaceName}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <span
-              className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider"
+              className="text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider"
               style={{
                 background: isActive
                   ? 'rgba(0, 240, 255, 0.1)'
@@ -434,14 +434,14 @@ function ExecCard({ report, progress, currentStep, result, onStop, onMigrate }: 
         </div>
 
         {/* Info detail and progress bar */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between text-xs">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between text-[10px]">
             <span style={{ color: 'var(--muted)' }} className="max-w-[80%] truncate">
               {currentStep}
             </span>
             <span className="font-bold text-cyan-400">{progress}%</span>
           </div>
-          <div className="w-full h-2 bg-gray-700/20 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-gray-700/20 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-300 ease-out"
               style={{
@@ -457,50 +457,53 @@ function ExecCard({ report, progress, currentStep, result, onStop, onMigrate }: 
         </div>
 
         {/* Link / Stop buttons footer */}
-        <div className="flex items-center justify-between mt-1 pt-3 border-t border-dashed" style={{ borderColor: 'var(--border)' }}>
-          <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">
+        {/* {(isActive || isError || (isDone && (result?.domoCardUrl || report.domoCardUrl))) && (
+          <div className="flex items-center justify-between mt-1 pt-2 border-t border-dashed" style={{ borderColor: 'var(--border)' }}>
+            <div className="text-[9px] text-gray-500 font-semibold uppercase tracking-wider">
+              Actions
+            </div>
+            <div className="flex items-center gap-2">
+              {isActive && (
+                <button
+                  onClick={onStop}
+                  className="px-3 py-1 rounded-md text-[10px] font-bold transition-all duration-200 border cursor-pointer hover:bg-red-500/10"
+                  style={{
+                    background: 'rgba(239, 68, 68, 0.05)',
+                    borderColor: 'rgba(239, 68, 68, 0.15)',
+                    color: '#ef4444',
+                  }}
+                >
+                  Stop
+                </button>
+              )}
+
+              {isError && (
+                <button
+                  onClick={onMigrate}
+                  className="px-3 py-1 rounded-md text-[10px] font-bold transition-all duration-200 border cursor-pointer hover:shadow-md"
+                  style={{
+                    background: 'linear-gradient(135deg, #00f0ff, #7000ff)',
+                    color: 'white',
+                    border: 'none',
+                  }}
+                >
+                  Migrate
+                </button>
+              )}
+
+              {isDone && (result?.domoCardUrl || report.domoCardUrl) && (
+                <a
+                  href={result?.domoCardUrl || report.domoCardUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[10px] font-bold text-cyan-400 hover:underline flex items-center gap-1"
+                >
+                  Open in Domo →
+                </a>
+              )}
+            </div>
           </div>
-          {/* <div className="flex items-center gap-3">
-            {isActive && (
-              <button
-                onClick={onStop}
-                className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border"
-                style={{
-                  background: 'rgba(239, 68, 68, 0.05)',
-                  borderColor: 'rgba(239, 68, 68, 0.15)',
-                  color: '#ef4444',
-                }}
-              >
-                Stop
-              </button>
-            )}
-
-            {isError && (
-              <button
-                onClick={onMigrate}
-                className="px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border cursor-pointer hover:shadow-md"
-                style={{
-                  background: 'linear-gradient(135deg, #00f0ff, #7000ff)',
-                  color: 'white',
-                  border: 'none',
-                }}
-              >
-                Migrate
-              </button>
-            )}
-
-            {isDone && (result?.domoCardUrl || report.domoCardUrl) && (
-              <a
-                href={result?.domoCardUrl || report.domoCardUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs font-bold text-cyan-400 hover:underline flex items-center gap-1"
-              >
-                Open in Domo →
-              </a>
-            )}
-          </div> */}
-        </div>
+        )} */}
       </div>
     </div>
   );
